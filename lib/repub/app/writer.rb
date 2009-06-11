@@ -1,14 +1,9 @@
-#!/usr/bin/env ruby
+require 'rubygems'
+require 'builder'
+require 'fileutils'
 
-module RePub
+module Repub
 
-  require 'rubygems'
-  require 'builder'
-  require 'fileutils'
-  require 'container'
-  require 'content'
-  require 'toc'
-  
   class WriterException < Exception; end
   
   class Writer
@@ -97,17 +92,6 @@ module RePub
       system("zip -Xr9D '#{filename}' * -xi mimetype >/dev/null")
       # ==
       FileUtils.mv(filename, '..')
-    end
-  end
-end
-
-if __FILE__ == $0
-
-  require "test/unit"
-
-  class TestWriter < Test::Unit::TestCase
-    def test_writer
-      
     end
   end
 

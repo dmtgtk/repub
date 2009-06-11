@@ -1,8 +1,8 @@
-module RePub
-  
-  require 'rubygems'
-  require 'builder'
-  require 'uuid'
+require 'rubygems'
+require 'builder'
+
+module Repub
+  module Epub
   
   class Toc
     
@@ -134,34 +134,6 @@ module RePub
       end
     end
   end
-end
 
-if __FILE__ == $0
-
-  require "test/unit"
-  require 'hpricot'
-
-  class TestToc < Test::Unit::TestCase
-    def test_toc_create
-      x = RePub::Toc.new(UUID.new.generate)
-      s = x.to_xml
-      #puts s
-      #doc = Hpricot(s)
-    end
-    
-    def test_toc
-      x = RePub::Toc.new(UUID.new.generate)
-      p0 = x.nav_map.add_nav_point('Intro', 'intro.html')
-      p1 = x.nav_map.add_nav_point('Chapter 1', 'chapter-1.html')
-      p2 = x.nav_map.add_nav_point('Chapter 2', 'chapter-2.html')
-      p21 = p2.add_nav_point('Chapter 2-1', 'chapter-2-1.html')
-      pg = x.nav_map.add_nav_point('Glossary', 'glossary.html')
-      p11 = p1.add_nav_point('Chapter 1-1', 'chapter-1-1.html')
-      p12 = p1.add_nav_point('Chapter 1-2', 'chapter-1-2.html')
-      s = x.to_xml
-      puts s
-      #doc = Hpricot(s)
-    end
   end
-
 end

@@ -16,12 +16,12 @@ end
 ensure_in_path 'lib'
 require 'repub'
 
-task :default => 'spec:run'
+task :default => 'test:run'
 
 PROJ.name = 'repub'
-PROJ.authors = 'FIXME (who is writing this software)'
-PROJ.email = 'FIXME (your e-mail)'
-PROJ.url = 'FIXME (project homepage)'
+PROJ.authors = 'Dmitri Goutnik'
+PROJ.email = 'dg@invisiblellama.net'
+PROJ.url = 'http://github.com/invisiblellama/repub/tree/master'
 PROJ.version = Repub::VERSION
 PROJ.rubyforge.name = 'repub'
 

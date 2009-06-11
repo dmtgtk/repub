@@ -1,7 +1,8 @@
-module RePub
-  
-  require 'rubygems'
-  require 'builder'
+require 'rubygems'
+require 'builder'
+
+module Repub
+  module Epub
   
   class Container
     def to_xml
@@ -15,28 +16,13 @@ module RePub
       end
       out
     end
-    
+  
     def save(path = 'container.xml')
       File.open(path, 'w') do |f|
         f << to_xml
       end
     end
   end
-end
-    
-if __FILE__ == $0
 
-  require "test/unit"
-  require 'hpricot'
-
-  class TestContainer < Test::Unit::TestCase
-    def test_container_create
-      c = RePub::Container.new
-      s = c.to_xml
-      doc = Hpricot(s)
-      puts s
-      assert_not_nil(doc.search('rootfile'))
-    end
   end
-  
 end
