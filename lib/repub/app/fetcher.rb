@@ -38,12 +38,14 @@ module Repub
       end
       
       def for_url(&block)
-        FileUtils.mkdir_p(@path) unless File.exist?(@path)
-        begin
-          FileUtils.chdir(@path) { yield }
-        rescue
-          FileUtils.rm_r(@path)
-          raise
+        unless File.exist?(@path)
+          FileUtils.mkdir_p(@path) 
+          begin
+            FileUtils.chdir(@path) { yield }
+          rescue
+            FileUtils.rm_r(@path)
+            raise
+          end
         end
         self
       end
