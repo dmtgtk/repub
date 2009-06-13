@@ -7,7 +7,8 @@ class TestParser < Test::Unit::TestCase
     cache = Repub::Fetcher.get('http://www.berzinarchives.com/web/x/prn/p.html_1614431902.html')
     parser = Repub::Parser.new(cache)
     parser.parse
-    pp parser
+    #pp parser.toc
+    #pp parser
     # assert_equal('p.html_272733222.epub', p.uid)
     # puts "UID: #{p.uid}"
     # assert_equal('Paraphrase of Advice from an Experienced Old Man', p.title)

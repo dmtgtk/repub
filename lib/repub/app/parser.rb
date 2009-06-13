@@ -37,30 +37,32 @@ module Repub
       @subtitle = parse_subtitle
       @subtitle_html = parse_subtitle_html
       @toc = parse_toc
+      pp @toc
       yield self if block
     end
     
     DefaultSelectors = {
       :title => '//h1',
       :subtitle => 'p.subtitle1',
-      :toc => 'div.toc',
-      :toc_item => 'a'
+      :toc_root => '//div.toc',
+      :toc_section => '//div//div/a',
+      :toc_item => '//div//a'
     }
     
     def parse_title
-      @document.search(@selectors[:title]).inner_text.gsub(/[\r\n]/, '').gsub(/\s+/, ' ')
+      @document.at(@selectors[:title]).inner_text.gsub(/[\r\n]/, '').gsub(/\s+/, ' ')
     end
     
     def parse_title_html
-      @document.search(@selectors[:title]).inner_html.gsub(/[\r\n]/, '')
+      @document.at(@selectors[:title]).inner_html.gsub(/[\r\n]/, '')
     end
     
     def parse_subtitle
-      @document.search(@selectors[:subtitle]).inner_text.gsub(/[\r\n]/, '').gsub(/\s+/, ' ')
+      @document.at(@selectors[:subtitle]).inner_text.gsub(/[\r\n]/, '').gsub(/\s+/, ' ')
     end
     
     def parse_subtitle_html
-      @document.search(@selectors[:subtitle]).inner_html.gsub(/[\r\n]/, '')
+      @document.at(@selectors[:subtitle]).inner_html.gsub(/[\r\n]/, '')
     end
     
     class TocItem < Struct.new(
@@ -86,14 +88,17 @@ module Repub
     end
     
     def parse_toc
+      parse_toc_section(@document.at(@selectors[:toc_root]))
+    end
+    
+    def parse_toc_section(section)
       toc = []
-      toc_element = @document.search(@selectors[:toc])[0]
-      p toc_element
-      if toc_element
-        # toc_href = item.at('a')['href']
-        # next if toc_href.empty?
-        # toc_title = item.at('a').inner_text
-        # toc << TocItem.new(toc_title, toc_href, @asset_name)
+      section.search(@selectors[:toc_item]).each do |item|
+        item.search(@selectors[:toc_section]).each { |subsection| puts '=== !! ==='; toc << parse_toc_section(subsection) }
+        href = item['href']
+        next if href.empty?
+        title = item.inner_text
+        toc << TocItem.new(title, href, @cache.assets[:documents][0])
       end
       toc
     end
