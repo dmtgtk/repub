@@ -24,6 +24,9 @@ module Repub
           puts "EPUB:\t\t#{res}"
         end
       end
+    rescue RuntimeError => ex
+      warn "ERROR: #{ex.to_s}"
+      exit 1
     end
     
     attr_reader :options
@@ -56,7 +59,7 @@ module Repub
           options[:metadata][name] = value
         end
         
-        opts.on("-d", "--download-helper=NAME", String,
+        opts.on("-w", "--downloader=NAME", String,
           "Which downloader to use to get files (\"wget\" and \"httrack\" are supported).",
           "Default is #{options[:helper]}."
         ) { |value| options[:helper] = value }
@@ -72,52 +75,31 @@ module Repub
         
         opts.on_tail("--version",
           "Show version."
-        ) { puts Repub.version; exit }
+        ) { puts Repub.version; exit 1 }
 
         opts.on_tail("-h", "--help",
           "Show this help message."
-        ) { puts opts; exit }
+        ) { puts opts; exit 1 }
         
         if args.empty?
           puts opts
-          exit
+          exit 1
         end
         
         begin
           opts.parse! args
         rescue OptionParser::ParseError => ex
           warn "ERROR: #{ex.to_s}. See '#{App.name} --help'."
-          exit
+          exit 1
         end
         
         options[:url] = args.last
         if options[:url].nil? || options[:url].empty?
           warn "ERROR: Please specify an URL. See '#{App.name} --help'."
-          exit
+          exit 1
         end
       end
+    
     end
   end
 end
-
-
-# if ARGV.size == 0
-#   puts <<-END
-#     usage:
-#       #{File.basename(__FILE__)} url [temp]
-#   END
-#   exit 1
-# end
-# 
-# # begin
-#   Repub::Fetcher.fetch(ARGV[0], ARGV[1], true) do |f|
-#     Repub::Parser.parse(f.asset_name, f.asset_root) do |p|
-#       puts "* Processing:\t#{p.title}"
-#       Repub::Writer.write(p)
-#       puts "* Done."
-#     end
-#   end
-# # rescue Exception => ex
-# #   puts "* Conversion failed: #{ex.message}"
-# #   exit 1
-# # end

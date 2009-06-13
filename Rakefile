@@ -24,6 +24,7 @@ PROJ.email = 'dg@invisiblellama.net'
 PROJ.url = 'http://github.com/invisiblellama/repub/tree/master'
 PROJ.version = Repub::VERSION
 PROJ.rubyforge.name = 'repub'
+PROJ.exclude = %w[tmp$ \.git/ \.DS_Store .*\.tmproj ^pkg/]
 
 PROJ.spec.opts << '--color'
 

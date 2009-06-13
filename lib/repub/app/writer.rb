@@ -120,10 +120,10 @@ module Repub
     
     def make_epub
       @epub = "#{@content.metadata.title}.epub"
-      # TODO ==
+      # TODO : use rubyzip lib
       system("zip -X9 '#{@epub}' mimetype >/dev/null")
       system("zip -Xr9D '#{@epub}' * -xi mimetype >/dev/null")
-      # ==
+      #
       FileUtils.mv(@epub, '..')
     end
   end

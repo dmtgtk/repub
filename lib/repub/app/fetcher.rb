@@ -6,8 +6,6 @@ module Repub
   
   class FetcherException < RuntimeError; end
 
-  #wget -nv -E -H -k -p -nH -nd -R '*.txt' http://www.berzinarchives.com/web/x/prn/p.html_272733222.html
-
   class Fetcher
     
     WgetHelper = 'wget'
@@ -45,7 +43,7 @@ module Repub
       end
       
       def for_url(&block)
-        # download stuff if not yet cached
+        # if not yet cached, download stuff
         unless File.exist?(@path)
           FileUtils.mkdir_p(@path) 
           begin
@@ -127,5 +125,4 @@ module Repub
     end
     
   end
-
 end
