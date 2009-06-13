@@ -7,7 +7,7 @@ module Repub
   class Content
     
     def initialize(uid)
-      @metadata = Metadata.new('Untitled', 'en', uid)
+      @metadata = Metadata.new('Untitled', 'en', uid, Date.today.to_s)
       @css_counter = 0
       @img_counter = 0
       @html_counter = 0
@@ -20,12 +20,12 @@ module Repub
         :title,
         :language,
         :identifier,
+        :date,
         :subject,
         :description,
         :relation,
         :creator,
         :publisher,
-        :date,
         :rights
       )
     end

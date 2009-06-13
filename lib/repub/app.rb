@@ -13,10 +13,15 @@ module Repub
     
     def run(args)
       parse_options(args)
-      Repub::Fetcher.get(options[:url]) do |cache|
-        Repub::Parser.parse(cache) do |metadata|
-          Repub::Writer.write(metadata, cache, options[:output_path])
-          puts "#{metadata.title}.epub"
+      
+      #p options
+      puts "Source:\t\t#{options[:url]}"
+      puts "Output path:\t#{options[:output_path]}"
+      
+      Repub::Fetcher.get(options) do |cache|
+        Repub::Parser.parse(cache, options) do |parser|
+          res = Repub::Writer.write(parser, cache, options)
+          puts "EPUB:\t\t#{res}"
         end
       end
     end
@@ -26,22 +31,44 @@ module Repub
     def parse_options(args)
       @options = {
         :url            => '',
-        :output_path    => '.'
+        :css            => '',
+        :output_path    => Dir.getwd,
+        :helper         => 'wget',
+        :metadata       => {}
       }
 
       parser = OptionParser.new do |opts|
         opts.banner = <<-BANNER.gsub(/^          /,'')
           
-          RePub is a simple HTML to ePub converter.
+          Repub is a simple HTML to ePub converter.
 
           Usage: #{App.name} [options] url
 
           Options are:
         BANNER
         
+        opts.on("-m", "--meta=NAME:VALUE", String,
+          "Set publication information metadata NAME to VALUE.",
+          "Names are: title language subject description relation",
+          "           creator publisher date rights"
+        ) do |value|
+          name, value = value.split(/:/)
+          options[:metadata][name] = value
+        end
+        
+        opts.on("-d", "--download-helper=NAME", String,
+          "Which downloader to use to get files (\"wget\" and \"httrack\" are supported).",
+          "Default is #{options[:helper]}."
+        ) { |value| options[:helper] = value }
+        
+        opts.on("-s", "--stylesheet=PATH", String,
+          "Use predefined stylesheet to override existing CSS references in the source file."
+        ) { |value| options[:css] = File.expand_path(value) }
+        
         opts.on("-o", "--output=PATH", String,
-          "Output path for generated ebooks."
-        ) { |value| options[:output_path] = value }
+          "Output path for generated ePub file.",
+          "Default is current directory (#{options[:output_path]})."
+        ) { |value| options[:output_path] = File.expand_path(value) }
         
         opts.on_tail("--version",
           "Show version."
@@ -53,7 +80,6 @@ module Repub
         
         if args.empty?
           puts opts
-          #warn "Please specify an URL."
           exit
         end
         
@@ -63,8 +89,13 @@ module Repub
           warn "ERROR: #{ex.to_s}. See '#{App.name} --help'."
           exit
         end
+        
+        options[:url] = args.last
+        if options[:url].nil? || options[:url].empty?
+          warn "ERROR: Please specify an URL. See '#{App.name} --help'."
+          exit
+        end
       end
-      options[:url] = args[0]
     end
   end
 end

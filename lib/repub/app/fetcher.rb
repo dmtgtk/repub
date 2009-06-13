@@ -87,8 +87,8 @@ module Repub
     attr_accessor :helper_path
     attr_accessor :helper_options
     
-    def self.get(url, helper = Fetcher::WgetHelper, &block)
-      self.new(url, helper).get(&block)
+    def self.get(options, &block)
+      self.new(options).get(&block)
     end
     
     def get(&block)
@@ -104,18 +104,18 @@ module Repub
   
     private
     
-    def initialize(url, helper = WgetHelper, helper_options = HelperOptions[WgetHelper])
-      raise FetcherException, "empty URL" if url.empty?
+    def initialize(options, helper_options = HelperOptions[WgetHelper])
+      @url = options[:url]
+      raise FetcherException, "empty URL" if @url.nil? || @url.empty?
       begin
-        URI.parse(url)
+        URI.parse(@url)
       rescue
         raise FetcherException, "invalid URL: #{url}"
       end
-      @url = url
       @helper_path = ENV['REPUB_HELPER']
-      @helper_path ||= which_helper(helper)
+      @helper_path ||= which_helper(options[:helper])
       @helper_options = ENV['REPUB_HELPER_OPTIONS']
-      @helper_options ||= HelperOptions[helper]
+      @helper_options ||= HelperOptions[options[:helper]]
     end
     
     def which_helper(helper)

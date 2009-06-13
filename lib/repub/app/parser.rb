@@ -9,6 +9,7 @@ module Repub
     
     attr_accessor :selectors
     
+    attr_reader :document
     attr_reader :uid
     attr_reader :title
     attr_reader :title_html
@@ -16,7 +17,7 @@ module Repub
     attr_reader :subtitle_html
     attr_reader :toc
     
-    def initialize(cache)
+    def initialize(cache, options)
       @cache = cache
       raise ParserException, "No HTML document found" if
         @cache.assets[:documents].empty?
@@ -25,8 +26,8 @@ module Repub
       @selectors = DefaultSelectors
     end
     
-    def self.parse(cache, &block)
-      self.new(cache).parse(&block)
+    def self.parse(cache, options, &block)
+      self.new(cache, options).parse(&block)
     end
     
     def parse(&block)
