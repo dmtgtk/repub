@@ -4,7 +4,7 @@ require 'uri'
 
 module Repub
   
-  class FetcherException < Exception; end
+  class FetcherException < RuntimeError; end
 
   #wget -nv -E -H -k -p -nH -nd -R '*.txt' http://www.berzinarchives.com/web/x/prn/p.html_272733222.html
 
@@ -41,13 +41,17 @@ module Repub
         unless File.exist?(@path)
           FileUtils.mkdir_p(@path) 
           begin
-            FileUtils.chdir(@path) { yield }
+            Dir.chdir(@path) { yield self }
           rescue
             FileUtils.rm_r(@path)
             raise
           end
         end
         self
+      end
+      
+      def empty?
+        Dir.glob(File.join(@path, '*')).empty?
       end
       
       private
@@ -68,8 +72,8 @@ module Repub
     
     def get
       cmd = "#{@helper_path} #{@helper_options} #{@url}"
-      Cache.for_url(@url) do
-        unless system(cmd)
+      Cache.for_url(@url) do |cache|
+        unless system(cmd) && !cache.empty?
           raise FetcherException, "Fetch failed."
         end
       end
@@ -92,9 +96,7 @@ module Repub
     end
     
     def which_helper(helper)
-      p helper
       res = `/usr/bin/which #{helper}`.strip
-      p res
       if res.empty?
         raise FetcherException, "#{helper}: helper not found."
       end
