@@ -4,7 +4,7 @@ require 'fileutils'
 
 module Repub
 
-  class WriterException < Exception; end
+  class WriterException < RuntimeError; end
   
   class Writer
     

@@ -3,7 +3,7 @@ require 'hpricot'
 
 module Repub
   
-  class ParserException < Exception; end
+  class ParserException < RuntimeError; end
   
   class Parser
     

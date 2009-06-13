@@ -51,7 +51,7 @@ module Repub
         when /.*\.svg$/
           'image/svg+xml'
         else
-          raise Exception, 'Unsupported image type'
+          raise 'Unsupported image type'
       end
       @manifest_items << ContentItem.new(id || "img_#{@img_counter += 1}", href, image_type)
     end
