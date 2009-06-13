@@ -87,17 +87,19 @@ module Repub
     attr_accessor :helper_path
     attr_accessor :helper_options
     
-    def self.get(url, helper = Fetcher::WgetHelper)
-      (self.new(url, helper)).get
+    def self.get(url, helper = Fetcher::WgetHelper, &block)
+      self.new(url, helper).get(&block)
     end
     
-    def get
+    def get(&block)
       cmd = "#{@helper_path} #{@helper_options} #{@url}"
-      Cache.for_url(@url) do |cache|
+      cache = Cache.for_url(@url) do |cache|
         unless system(cmd) && !cache.empty?
           raise FetcherException, "Fetch failed."
         end
       end
+      yield cache if block
+      cache
     end
   
     private

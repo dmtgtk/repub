@@ -40,6 +40,7 @@ module Repub
       #p @toc.count
       #pp @toc
       yield self if block
+      self
     end
     
     DefaultSelectors = {
@@ -76,7 +77,7 @@ module Repub
         self.title = title
         self.uri, self.fragment_id = uri_with_fragment_id.split(/#/)
         self.uri = asset if self.uri.empty?
-        @subitems = subitems
+        @subitems = subitems || []
       end
 
       attr_reader :subitems
@@ -98,7 +99,7 @@ module Repub
         title = item.inner_text
         subitems = nil
         item.search(@selectors[:toc_section]).each do |subsection|
-          puts '=== Subsection ==='
+          puts '=== Got subsection ==='
           subitems = parse_toc_section(subsection)
         end
         toc << TocItem.new(title, href, subitems, @cache.assets[:documents][0])

@@ -4,6 +4,6 @@ require File.expand_path(
     File.join(File.dirname(__FILE__), %w[.. lib repub]))
 
 args = ['--version', '-s', 'http://www.berzinarchives.com/web/x/prn/p.html_1614431902.html']
-args = ['-h', '--version', '-a', 'http://www.berzinarchives.com/web/x/prn/p.html_1614431902.html']
+args = ['http://www.berzinarchives.com/web/x/prn/p.html_1614431902.html']
 
-Repub::App.run args #ARGV
+Repub::App.run ARGV

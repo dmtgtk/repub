@@ -8,15 +8,16 @@ module Repub
   
   class Writer
     
-    def initialize(parser, output_path = nil)
+    def initialize(parser, cache, output_path = nil)
+      @cache = cache
       @parser = parser
       if output_path
         @output_path = File.join(output_path, parser.title)
       else
         @output_path = parser.title
       end
-      @content = Content.new(@parser.uid)
-      @toc = Toc.new(@parser.uid)
+      @content = Epub::Content.new(@parser.uid)
+      @toc = Epub::Toc.new(@parser.uid)
     end
     
     def write
@@ -31,8 +32,8 @@ module Repub
       end
     end
     
-    def self.write(parser, output_path = nil)
-      new(parser, output_path).write
+    def self.write(parser, cache, output_path = nil)
+      self.new(parser, cache, output_path).write
     end
     
     private
@@ -42,7 +43,7 @@ module Repub
     def write_meta_inf
       FileUtils.mkdir_p(MetaInf)
       FileUtils.chdir(MetaInf) do
-        Container.new.save
+        Epub::Container.new.save
       end
     end
     
@@ -53,21 +54,17 @@ module Repub
     end
     
     def write_assets
-      Dir.glob(File.join(@parser.asset_root, '*.html')).each do |a|
-        FileUtils.cp(a, '.')
-        @content.add_html(File.basename(a))
+      @cache.assets[:documents].each do |a|
+        FileUtils.cp(File.join(@cache.path, a), '.')
+        @content.add_document(a)
       end
-      Dir.glob(File.join(@parser.asset_root, '*.css')).each do |a|
-        FileUtils.cp(a, '.')
-        @content.add_css(File.basename(a))
+      @cache.assets[:stylesheets].each do |a|
+        FileUtils.cp(File.join(@cache.path, a), '.')
+        @content.add_stylesheet(a)
       end
-      Dir.glob(File.join(@parser.asset_root, '*.{jpeg,jpg,gif,png,svg}')).each do |a|
-        FileUtils.cp(a, '.')
-        @content.add_img(File.basename(a))
-      end
-      Dir.glob(File.join(@parser.asset_root, '*.xpgt')).each do |a|
-        FileUtils.cp(a, '.')
-        @content.add_page_template(File.basename(a))
+      @cache.assets[:images].each do |a|
+        FileUtils.cp(File.join(@cache.path, a), '.')
+        @content.add_image(a)
       end
     end
     
@@ -79,10 +76,17 @@ module Repub
     
     def write_toc
       @toc.title = @parser.title
-      @parser.toc.each do |t|
-        @toc.nav_map.add_nav_point(t.title, t.src)
-      end
+      add_nav_points(@toc.nav_map, @parser.toc)
       @toc.save
+    end
+    
+    def add_nav_points(nav_collection, toc)
+      toc.each do |t|
+        nav_point = nav_collection.add_nav_point(t.title, t.src)
+        t.subitems.each do |st|
+          add_nav_points(nav_point, st.title, st.src)
+        end
+      end
     end
     
     def make_epub

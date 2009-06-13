@@ -12,19 +12,26 @@ module Repub
     end
     
     def run(args)
-      parse(args)
+      parse_options(args)
+      Repub::Fetcher.get(options[:url]) do |cache|
+        Repub::Parser.parse(cache) do |metadata|
+          Repub::Writer.write(metadata, cache, options[:output_path])
+          puts "#{metadata.title}.epub"
+        end
+      end
     end
     
     attr_reader :options
     
-    def parse(args)
+    def parse_options(args)
       @options = {
-        :url      => '',
-        :path     => '~'
+        :url            => '',
+        :output_path    => '.'
       }
 
       parser = OptionParser.new do |opts|
         opts.banner = <<-BANNER.gsub(/^          /,'')
+          
           RePub is a simple HTML to ePub converter.
 
           Usage: #{App.name} [options] url
@@ -32,13 +39,9 @@ module Repub
           Options are:
         BANNER
         
-        opts.separator ""
-        
-        opts.on("-p", "--path=PATH", String,
-          "This is a sample message.",
-          "For multiple lines, add more strings.",
-          "Default: ~"
-        ) { |value| options[:path] = value }
+        opts.on("-o", "--output=PATH", String,
+          "Output path for generated ebooks."
+        ) { |value| options[:output_path] = value }
         
         opts.on_tail("--version",
           "Show version."
@@ -49,7 +52,8 @@ module Repub
         ) { puts opts; exit }
         
         if args.empty?
-          warn "Please specify an URL."
+          puts opts
+          #warn "Please specify an URL."
           exit
         end
         
@@ -59,10 +63,8 @@ module Repub
           warn "ERROR: #{ex.to_s}. See '#{App.name} --help'."
           exit
         end
-        
-        p args
-        p opts
       end
+      options[:url] = args[0]
     end
   end
 end
