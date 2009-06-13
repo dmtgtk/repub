@@ -27,4 +27,7 @@ PROJ.rubyforge.name = 'repub'
 
 PROJ.spec.opts << '--color'
 
+depend_on 'builder'
+depend_on 'hpricot'
+
 # EOF

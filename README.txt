@@ -1,32 +1,27 @@
 repub
-    by FIXME (your name)
-    FIXME (url)
+    by Dmitri Goutnik (dg@invisiblellama.net)
 
 == DESCRIPTION:
 
-FIXME (describe your package)
+RePub is a simple HTML to ePub convertor.
 
 == FEATURES/PROBLEMS:
 
-* FIXME (list of features or problems)
 
 == SYNOPSIS:
 
-  FIXME (code sample of usage)
 
 == REQUIREMENTS:
 
-* FIXME (list of requirements)
 
 == INSTALL:
 
-* FIXME (sudo gem install, anything else)
 
 == LICENSE:
 
 (The MIT License)
 
-Copyright (c) 2008 FIXME (different license?)
+Copyright (c) 2009 Dmitri Goutnik
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
