@@ -37,9 +37,15 @@ module Repub
         :css            => '',
         :output_path    => Dir.getwd,
         :helper         => 'wget',
-        :metadata       => {}
+        :metadata       => {},
+        :verbosity      => 0,
+        :selector       => Parser::Selectors
       }
-
+      
+      get_selector_values = lambda do
+        options[:selector].keys.map(&:to_s).sort.map {|k| "  #{k}: #{Parser::Selectors[k.to_sym]}"}
+      end
+      
       parser = OptionParser.new do |opts|
         opts.banner = <<-BANNER.gsub(/^          /,'')
           
@@ -50,30 +56,46 @@ module Repub
           Options are:
         BANNER
         
+        opts.on("-s", "--stylesheet=PATH", String,
+          "Use custom stylesheet at PATH to override existing",
+          "CSS references in the source file(s)."
+        ) { |value| options[:css] = File.expand_path(value) }
+        
         opts.on("-m", "--meta=NAME:VALUE", String,
           "Set publication information metadata NAME to VALUE.",
-          "Names are: title language subject description relation",
-          "           creator publisher date rights"
+          "Valid metadata names are: creator date description",
+          "language publisher relation rights subject title"
         ) do |value|
           name, value = value.split(/:/)
-          options[:metadata][name] = value
+          options[:metadata][name.to_sym] = value
         end
         
-        opts.on("-w", "--downloader=NAME", String,
-          "Which downloader to use to get files (\"wget\" and \"httrack\" are supported).",
+        opts.on("-x", "--selector=NAME:VALUE", String,
+          "Set parser selector NAME to VALUE."
+        ) do |value|
+          name, value = value.split(/:/)
+          options[:selector][name.to_sym] = value
+        end
+        
+        opts.on("-D", "--downloader=NAME", String,
+          "Which downloader to use to get files (\"wget\" or \"httrack\").",
           "Default is #{options[:helper]}."
         ) { |value| options[:helper] = value }
-        
-        opts.on("-s", "--stylesheet=PATH", String,
-          "Use predefined stylesheet to override existing CSS references in the source file."
-        ) { |value| options[:css] = File.expand_path(value) }
         
         opts.on("-o", "--output=PATH", String,
           "Output path for generated ePub file.",
           "Default is current directory (#{options[:output_path]})."
         ) { |value| options[:output_path] = File.expand_path(value) }
         
-        opts.on_tail("--version",
+        opts.on("-v", "--verbose",
+          "Turn on verbose output."
+        ) { |value| options[:verbosity] = 1 }
+
+        opts.on("-q", "--quiet",
+          "Turn off any output except errors."
+        ) { |value| options[:verbosity] = -1 }
+        
+        opts.on_tail("-V", "--version",
           "Show version."
         ) { puts Repub.version; exit 1 }
 

@@ -23,7 +23,7 @@ module Repub
         @cache.assets[:documents].empty?
       raise ParserException, "More than HTML document found, this is not supported (yet)" if
         @cache.assets[:documents].size > 1
-      @selectors = DefaultSelectors
+      @selectors = Selectors
     end
     
     def self.parse(cache, options, &block)
@@ -44,7 +44,7 @@ module Repub
       self
     end
     
-    DefaultSelectors = {
+    Selectors = {
       :title        => '//h1',
       :subtitle     => 'p.subtitle1',
       :toc_root     => '//div.toc',
