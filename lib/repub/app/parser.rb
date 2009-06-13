@@ -37,16 +37,17 @@ module Repub
       @subtitle = parse_subtitle
       @subtitle_html = parse_subtitle_html
       @toc = parse_toc
-      pp @toc
+      #p @toc.count
+      #pp @toc
       yield self if block
     end
     
     DefaultSelectors = {
-      :title => '//h1',
-      :subtitle => 'p.subtitle1',
-      :toc_root => '//div.toc',
-      :toc_section => '//div//div/a',
-      :toc_item => '//div//a'
+      :title        => '//h1',
+      :subtitle     => 'p.subtitle1',
+      :toc_root     => '//div.toc',
+      :toc_item     => '/div//a',
+      :toc_section  => '/div/div//a'
     }
     
     def parse_title
@@ -71,19 +72,17 @@ module Repub
         :fragment_id
       )
       
-      def initialize(title, uri_with_fragment_id, asset)
+      def initialize(title, uri_with_fragment_id, subitems, asset)
         self.title = title
         self.uri, self.fragment_id = uri_with_fragment_id.split(/#/)
         self.uri = asset if self.uri.empty?
-        @child_items = []
+        @subitems = subitems
       end
+
+      attr_reader :subitems
       
       def src
         "#{uri}##{fragment_id}"
-      end
-      
-      def add_child_item()
-        
       end
     end
     
@@ -94,11 +93,15 @@ module Repub
     def parse_toc_section(section)
       toc = []
       section.search(@selectors[:toc_item]).each do |item|
-        item.search(@selectors[:toc_section]).each { |subsection| puts '=== !! ==='; toc << parse_toc_section(subsection) }
         href = item['href']
         next if href.empty?
         title = item.inner_text
-        toc << TocItem.new(title, href, @cache.assets[:documents][0])
+        subitems = nil
+        item.search(@selectors[:toc_section]).each do |subsection|
+          puts '=== Subsection ==='
+          subitems = parse_toc_section(subsection)
+        end
+        toc << TocItem.new(title, href, subitems, @cache.assets[:documents][0])
       end
       toc
     end
