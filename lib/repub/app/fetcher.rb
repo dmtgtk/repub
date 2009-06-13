@@ -18,6 +18,12 @@ module Repub
       HttrackHelper => '-gB -r2 +*.css +*.jpg -*.xml -*.html'
     }
     
+    AssetTypes = {
+      :documents => %w[html htm],
+      :stylesheets => %w[css],
+      :images => %w[jpg jpeg png gif svg]
+    }
+    
     class Cache
       CACHE_ROOT = File.join(File.expand_path('~'), %w[.repub cache])
       
@@ -32,12 +38,14 @@ module Repub
       attr_reader :url
       attr_reader :name
       attr_reader :path
+      attr_reader :assets
       
       def self.for_url(url, &block)
         self.new(url).for_url(&block)
       end
       
       def for_url(&block)
+        # download stuff if not yet cached
         unless File.exist?(@path)
           FileUtils.mkdir_p(@path) 
           begin
@@ -45,6 +53,19 @@ module Repub
           rescue
             FileUtils.rm_r(@path)
             raise
+          end
+        end
+        # enumerate assets
+        if File.exist?(@path)
+          Dir.chdir(@path) do
+            @assets = {}
+            AssetTypes.each_pair do |asset_type, file_types|
+              @assets[asset_type] ||= []
+              file_types.each do |file_type|
+                @assets[asset_type] << Dir.glob("*.#{file_type}")
+              end
+              @assets[asset_type].flatten!
+            end
           end
         end
         self
