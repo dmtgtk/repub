@@ -46,10 +46,9 @@ module Repub
     
     Selectors = {
       :title        => '//h1',
-      :subtitle     => 'p.subtitle1',
-      :toc_root     => '//div.toc',
-      :toc_item     => '/div//a',
-      :toc_section  => '/div/div//a'
+      :toc          => '//div.toc/ul',
+      :toc_item     => '/li',
+      :toc_section  => '/ul'
     }
     
     def parse_title
@@ -89,19 +88,22 @@ module Repub
     end
     
     def parse_toc
-      parse_toc_section(@document.at(@selectors[:toc_root]))
+      parse_toc_section(@document.at(@selectors[:toc]))
     end
     
     def parse_toc_section(section)
       toc = []
       section.search(@selectors[:toc_item]).each do |item|
-        href = item['href']
+        #puts "=== Item ==="
+        href = item.at('a')['href']
         next if href.empty?
-        title = item.inner_text
+        title = item.at('a').inner_text
         subitems = nil
+        #p "#{title}"
         item.search(@selectors[:toc_section]).each do |subsection|
-          puts '=== Got subsection ==='
+          #puts '--- Section >>>'
           subitems = parse_toc_section(subsection)
+          #puts '<<<'
         end
         toc << TocItem.new(title, href, subitems, @cache.assets[:documents][0])
       end

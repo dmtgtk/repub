@@ -112,9 +112,7 @@ module Repub
     def add_nav_points(nav_collection, toc)
       toc.each do |t|
         nav_point = nav_collection.add_nav_point(t.title, t.src)
-        t.subitems.each do |st|
-          add_nav_points(nav_point, st.title, st.src)
-        end
+        add_nav_points(nav_point, t.subitems) if t.subitems
       end
     end
     
