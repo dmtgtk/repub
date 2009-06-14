@@ -16,10 +16,10 @@ module Repub
       @toc = Epub::Toc.new(@parser.uid)
       
       @content.metadata.title = @parser.title
-      @content.metadata.description = @parser.subtitle
       if @options[:metadata]
         @content.metadata.members.each do |m|
-          next if m == 'identifier'   # do not allow to override uid
+          m = m.to_sym
+          next if m == :identifier   # do not allow to override uid
           @content.metadata[m] = @options[:metadata][m] if @options[:metadata][m]
         end
       end

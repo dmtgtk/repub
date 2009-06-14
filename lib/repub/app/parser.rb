@@ -13,8 +13,6 @@ module Repub
     attr_reader :uid
     attr_reader :title
     attr_reader :title_html
-    attr_reader :subtitle
-    attr_reader :subtitle_html
     attr_reader :toc
     
     def initialize(cache, options)
@@ -35,8 +33,6 @@ module Repub
       @uid = @cache.name
       @title = parse_title
       @title_html = parse_title_html
-      @subtitle = parse_subtitle
-      @subtitle_html = parse_subtitle_html
       @toc = parse_toc
       #p @toc.count
       #pp @toc
@@ -57,14 +53,6 @@ module Repub
     
     def parse_title_html
       @document.at(@selectors[:title]).inner_html.gsub(/[\r\n]/, '')
-    end
-    
-    def parse_subtitle
-      @document.at(@selectors[:subtitle]).inner_text.gsub(/[\r\n]/, '').gsub(/\s+/, ' ')
-    end
-    
-    def parse_subtitle_html
-      @document.at(@selectors[:subtitle]).inner_html.gsub(/[\r\n]/, '')
     end
     
     class TocItem < Struct.new(
