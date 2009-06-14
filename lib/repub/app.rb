@@ -25,7 +25,7 @@ module Repub
         end
       end
     rescue RuntimeError => ex
-      warn "ERROR: #{ex.to_s}"
+      STDERR.puts "ERROR: #{ex.to_s}"
       exit 1
     end
     
@@ -87,13 +87,17 @@ module Repub
           "Default is current directory (#{options[:output_path]})."
         ) { |value| options[:output_path] = File.expand_path(value) }
         
+        opts.on("-C", "--cleanup",
+          "Clean up download cache."
+        ) { Fetcher::Cache.cleanup; exit 1 }
+
         opts.on("-v", "--verbose",
           "Turn on verbose output."
-        ) { |value| options[:verbosity] = 1 }
+        ) { options[:verbosity] = 1 }
 
         opts.on("-q", "--quiet",
           "Turn off any output except errors."
-        ) { |value| options[:verbosity] = -1 }
+        ) { options[:verbosity] = -1 }
         
         opts.on_tail("-V", "--version",
           "Show version."
@@ -111,13 +115,13 @@ module Repub
         begin
           opts.parse! args
         rescue OptionParser::ParseError => ex
-          warn "ERROR: #{ex.to_s}. See '#{App.name} --help'."
+          STDERR.puts "ERROR: #{ex.to_s}. See '#{App.name} --help'."
           exit 1
         end
         
         options[:url] = args.last
         if options[:url].nil? || options[:url].empty?
-          warn "ERROR: Please specify an URL. See '#{App.name} --help'."
+          STDERR.puts "ERROR: Please specify an URL. See '#{App.name} --help'."
           exit 1
         end
       end
