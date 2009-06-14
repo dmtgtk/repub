@@ -33,6 +33,11 @@ module Repub
         # TODO 
       end
       
+      def self.cleanup
+        Dir.chdir(CACHE_ROOT) { FileUtils.rm_r(Dir.glob('*')) }
+      rescue
+      end
+      
       attr_reader :url
       attr_reader :name
       attr_reader :path
