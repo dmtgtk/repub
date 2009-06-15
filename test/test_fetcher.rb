@@ -14,7 +14,7 @@ class TestFetcher < Test::Unit::TestCase
     }
     assert_nothing_raised do
       cache = fetch
-      p cache
+      #p cache
       assert_equal('http://www.berzinarchives.com/web/x/prn/p.html_1614431902.html', cache.url)
       assert(cache.path.include?('.repub/cache/f963050ead9ee7775a4155e13743d47bc851d5d8'))
       assert_equal('f963050ead9ee7775a4155e13743d47bc851d5d8', cache.name)
@@ -29,7 +29,7 @@ class TestFetcher < Test::Unit::TestCase
     }
    assert_raise(Repub::App::FetcherException) do
      cache = fetch
-     p cache
+     #p cache
    end
   end
 

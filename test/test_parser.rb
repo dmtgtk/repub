@@ -24,7 +24,7 @@ class TestParser < Test::Unit::TestCase
     puts "UID: #{parser.uid}"
     assert_equal('A Survey of Tibetan History', parser.title)
     puts "Title: #{parser.title}"
-    puts parser.toc
+    #puts parser.toc
     assert_equal(4, parser.toc.size)
     puts "TOC: (#{parser.toc.size} items)"
   end
