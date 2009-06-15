@@ -6,61 +6,18 @@ module Repub
   class App
     module Fetcher
     
-      def fetch
-        FetchHelper.new(options).fetch
-      end
-    
       class FetcherException < RuntimeError; end
 
-      class FetchHelper
-        WgetHelper = 'wget'
-        HttrackHelper = 'httrack'
-    
-        HelperOptions = {
-          WgetHelper => '-nv -E -H -k -p -nH -nd',
-          HttrackHelper => '-gB -r2 +*.css +*.jpg -*.xml -*.html'
-        }
-    
-        AssetTypes = {
-          :documents => %w[html htm],
-          :stylesheets => %w[css],
-          :images => %w[jpg jpeg png gif svg]
-        }
-    
-        def initialize(options)
-          @url = options[:url]
-          raise FetcherException, "empty URL" if @url.nil? || @url.empty?
-          begin
-            URI.parse(@url)
-          rescue
-            raise FetcherException, "invalid URL: #{url}"
-          end
-          @helper_path = ENV['REPUB_HELPER']
-          @helper_path ||= which_helper(options[:helper])
-          @helper_options = ENV['REPUB_HELPER_OPTIONS']
-          @helper_options ||= HelperOptions[options[:helper]]
-        end
-        
-        def fetch
-          cmd = "#{@helper_path} #{@helper_options} #{@url}"
-          cache = Cache.for_url(@url) do |cache|
-            unless system(cmd) && !cache.empty?
-              raise FetcherException, "Fetch failed."
-            end
-          end
-          yield cache if block
-          cache
-        end
-        
-        private
-    
-        def which_helper(helper)
-          res = `/usr/bin/which #{helper}`.strip
-          raise FetcherException, "#{helper}: helper not found." if res.empty?
-          res
-        end
+      def fetch
+        FetchHelper.new(options[:helper]).fetch(options[:url])
       end
-      
+    
+      AssetTypes = {
+        :documents => %w[html htm],
+        :stylesheets => %w[css],
+        :images => %w[jpg jpeg png gif svg]
+      }
+  
       class Cache
         CACHE_ROOT = File.join(File.expand_path('~'), %w[.repub cache])
       
@@ -126,7 +83,68 @@ module Repub
           @path = File.join(CACHE_ROOT, @name)
         end
       end
-    
+      
+      class Helper
+        HelperCommand = {
+          :wget     => { :cmd => 'wget', :options => '-nv -E -H -k -p -nH -nd' },
+          :httrack  => { :cmd => 'httrack', :options => '-gB -r2 +*.css +*.jpg -*.xml -*.html' }
+        }
+        
+        def initialize(name)
+          @helper_path, @helper_options = ENV['REPUB_HELPER'], ENV['REPUB_HELPER_OPTIONS']
+          begin
+            helper = HelperCommand[name.to_sym] rescue HelperCommand[:wget]
+            @helper_path ||= which(helper[:cmd])
+            @helper_options ||= helper[:options]
+          rescue
+            raise FetcherException, "unknown helper '#{name}'"
+          end
+        end
+        
+        def fetch(url)
+          raise FetcherException, "empty URL" if url.nil? || url.empty?
+          begin
+            URI.parse(url)
+          rescue
+            raise FetcherException, "invalid URL: #{url}"
+          end
+          cmd = "#{@helper_path} #{@helper_options} #{url}"
+          Cache.for_url(url) do |cache|
+            unless system(cmd) && !cache.empty?
+              raise FetcherException, "Fetch failed."
+            end
+          end
+        end
+        
+        private
+        
+        def which
+          res = `/usr/bin/which #{helper}`.strip
+          raise FetcherException, "#{helper}: helper not found." if res.empty?
+          res
+        end
+      end
+      
+      class WgetHelper < FetchHelper
+        def cmd
+          'wget'
+        end
+        
+        def cmd_options
+          '-nv -E -H -k -p -nH -nd'
+        end
+      end
+      
+      class HttrackHelper < FetchHelper
+        def cmd
+          'httrack'
+        end
+        
+        def cmd_options
+          '-gB -r2 +*.css +*.jpg -*.xml -*.html'
+        end
+      end
+      
     end
   end
 end
