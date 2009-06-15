@@ -1,7 +1,7 @@
 module Repub
 
   # :stopdoc:
-  VERSION = '0.0.1'
+  VERSION = '0.0.2'
   LIBPATH = File.expand_path(File.dirname(__FILE__)) + File::SEPARATOR
   PATH = File.dirname(LIBPATH) + File::SEPARATOR
   # :startdoc:
@@ -40,12 +40,7 @@ module Repub
 
     Dir.glob(search_me).sort.each {|rb| require rb}
   end
-  
-  def self.cache_path
-    return CACHE_PATH
-  end
 
 end
 
-#$:.unshift(Repub.libpath) unless $:.include?(Repub.libpath)
 Repub.require_all_libs_relative_to(__FILE__)

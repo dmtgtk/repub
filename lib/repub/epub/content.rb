@@ -7,7 +7,7 @@ module Repub
   class Content
     
     def initialize(uid)
-      @metadata = Metadata.new('Untitled', 'en', uid)
+      @metadata = Metadata.new('Untitled', 'en', uid, Date.today.to_s)
       @css_counter = 0
       @img_counter = 0
       @html_counter = 0
@@ -20,12 +20,12 @@ module Repub
         :title,
         :language,
         :identifier,
+        :date,
         :subject,
         :description,
         :relation,
         :creator,
         :publisher,
-        :date,
         :rights
       )
     end
@@ -36,11 +36,11 @@ module Repub
       @manifest_items << ContentItem.new(id, href, 'application/vnd.adobe-page-template+xml')
     end
     
-    def add_css(href, id = nil)
+    def add_stylesheet(href, id = nil)
       @manifest_items << ContentItem.new(id || "css_#{@css_counter += 1}", href, 'text/css')
     end
     
-    def add_img(href, id = nil)
+    def add_image(href, id = nil)
       image_type = case(href.strip.downcase)
         when /.*\.(jpeg|jpg)$/
           'image/jpeg'
@@ -51,12 +51,12 @@ module Repub
         when /.*\.svg$/
           'image/svg+xml'
         else
-          raise Exception, 'Unsupported image type'
+          raise 'Unsupported image type'
       end
       @manifest_items << ContentItem.new(id || "img_#{@img_counter += 1}", href, image_type)
     end
     
-    def add_html(href, id = nil)
+    def add_document(href, id = nil)
       manifest_item = ContentItem.new(id || "item_#{@html_counter += 1}", href, 'application/xhtml+xml')
       @manifest_items << manifest_item
       @spine_items << manifest_item

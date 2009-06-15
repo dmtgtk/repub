@@ -4,9 +4,7 @@ require 'uri'
 
 module Repub
   
-  class FetcherException < Exception; end
-
-  #wget -nv -E -H -k -p -nH -nd -R '*.txt' http://www.berzinarchives.com/web/x/prn/p.html_272733222.html
+  class FetcherException < RuntimeError; end
 
   class Fetcher
     
@@ -16,6 +14,12 @@ module Repub
     HelperOptions = {
       WgetHelper => '-nv -E -H -k -p -nH -nd',
       HttrackHelper => '-gB -r2 +*.css +*.jpg -*.xml -*.html'
+    }
+    
+    AssetTypes = {
+      :documents => %w[html htm],
+      :stylesheets => %w[css],
+      :images => %w[jpg jpeg png gif svg]
     }
     
     class Cache
@@ -29,25 +33,50 @@ module Repub
         # TODO 
       end
       
+      def self.cleanup
+        Dir.chdir(CACHE_ROOT) { FileUtils.rm_r(Dir.glob('*')) }
+      rescue
+        # ignore exceptions
+      end
+      
       attr_reader :url
       attr_reader :name
       attr_reader :path
+      attr_reader :assets
       
       def self.for_url(url, &block)
         self.new(url).for_url(&block)
       end
       
       def for_url(&block)
+        # if not yet cached, download stuff
         unless File.exist?(@path)
           FileUtils.mkdir_p(@path) 
           begin
-            FileUtils.chdir(@path) { yield }
+            Dir.chdir(@path) { yield self }
           rescue
             FileUtils.rm_r(@path)
             raise
           end
         end
+        # enumerate assets
+        if File.exist?(@path)
+          Dir.chdir(@path) do
+            @assets = {}
+            AssetTypes.each_pair do |asset_type, file_types|
+              @assets[asset_type] ||= []
+              file_types.each do |file_type|
+                @assets[asset_type] << Dir.glob("*.#{file_type}")
+              end
+              @assets[asset_type].flatten!
+            end
+          end
+        end
         self
+      end
+      
+      def empty?
+        Dir.glob(File.join(@path, '*')).empty?
       end
       
       private
@@ -62,39 +91,39 @@ module Repub
     attr_accessor :helper_path
     attr_accessor :helper_options
     
-    def self.get(url, helper = Fetcher::WgetHelper)
-      (self.new(url, helper)).get
+    def self.get(options, &block)
+      self.new(options).get(&block)
     end
     
-    def get
+    def get(&block)
       cmd = "#{@helper_path} #{@helper_options} #{@url}"
-      Cache.for_url(@url) do
-        unless system(cmd)
+      cache = Cache.for_url(@url) do |cache|
+        unless system(cmd) && !cache.empty?
           raise FetcherException, "Fetch failed."
         end
       end
+      yield cache if block
+      cache
     end
   
     private
     
-    def initialize(url, helper = WgetHelper, helper_options = HelperOptions[WgetHelper])
-      raise FetcherException, "empty URL" if url.empty?
+    def initialize(options, helper_options = HelperOptions[WgetHelper])
+      @url = options[:url]
+      raise FetcherException, "empty URL" if @url.nil? || @url.empty?
       begin
-        URI.parse(url)
+        URI.parse(@url)
       rescue
         raise FetcherException, "invalid URL: #{url}"
       end
-      @url = url
       @helper_path = ENV['REPUB_HELPER']
-      @helper_path ||= which_helper(helper)
+      @helper_path ||= which_helper(options[:helper])
       @helper_options = ENV['REPUB_HELPER_OPTIONS']
-      @helper_options ||= HelperOptions[helper]
+      @helper_options ||= HelperOptions[options[:helper]]
     end
     
     def which_helper(helper)
-      p helper
       res = `/usr/bin/which #{helper}`.strip
-      p res
       if res.empty?
         raise FetcherException, "#{helper}: helper not found."
       end
@@ -102,5 +131,4 @@ module Repub
     end
     
   end
-
 end

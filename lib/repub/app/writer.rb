@@ -4,24 +4,32 @@ require 'fileutils'
 
 module Repub
 
-  class WriterException < Exception; end
+  class WriterException < RuntimeError; end
   
   class Writer
     
-    def initialize(parser, output_path = nil)
+    def initialize(parser, cache, options)
+      @cache = cache
       @parser = parser
-      if output_path
-        @output_path = File.join(output_path, parser.title)
-      else
-        @output_path = parser.title
+      @options = options
+      @content = Epub::Content.new(@parser.uid)
+      @toc = Epub::Toc.new(@parser.uid)
+      
+      @content.metadata.title = @parser.title
+      if @options[:metadata]
+        @content.metadata.members.each do |m|
+          m = m.to_sym
+          next if m == :identifier   # do not allow to override uid
+          @content.metadata[m] = @options[:metadata][m] if @options[:metadata][m]
+        end
       end
-      @content = Content.new(@parser.uid)
-      @toc = Toc.new(@parser.uid)
     end
     
     def write
-      FileUtils.mkdir_p(@output_path)
-      FileUtils.chdir(@output_path) do
+      output_path = @content.metadata.title
+      output_path = File.join(@options[:output_path], output_path) if @options[:output_path]
+      FileUtils.mkdir_p(output_path)
+      FileUtils.chdir(output_path) do
         write_meta_inf
         write_mime_type
         write_assets
@@ -29,10 +37,12 @@ module Repub
         write_toc
         make_epub
       end
+      # FileUtils.rm_r(output_path)
+      @epub
     end
     
-    def self.write(parser, output_path = nil)
-      new(parser, output_path).write
+    def self.write(parser, cache, output_path = nil)
+      self.new(parser, cache, output_path).write
     end
     
     private
@@ -42,7 +52,7 @@ module Repub
     def write_meta_inf
       FileUtils.mkdir_p(MetaInf)
       FileUtils.chdir(MetaInf) do
-        Container.new.save
+        Epub::Container.new.save
       end
     end
     
@@ -51,47 +61,68 @@ module Repub
         f << 'application/epub+zip'
       end
     end
-    
+
+    # TODO : refactor this mess
     def write_assets
-      Dir.glob(File.join(@parser.asset_root, '*.html')).each do |a|
-        FileUtils.cp(a, '.')
-        @content.add_html(File.basename(a))
+      # copy html
+      @cache.assets[:documents].each do |a|
+        if @options[:css].empty?
+          # copy file verbatim
+          FileUtils.cp(File.join(@cache.path, a), '.')
+        else
+          # custom css - fix css references
+          doc = Hpricot(open(File.join(@cache.path, a)))
+          doc.search('//link[@rel="stylesheet"]') do |link|
+            link[:href] = File.basename(@options[:css])
+          end
+          File.open(a, 'w') do |f|
+            f << doc.to_html
+          end
+        end
+        @content.add_document(a)
       end
-      Dir.glob(File.join(@parser.asset_root, '*.css')).each do |a|
-        FileUtils.cp(a, '.')
-        @content.add_css(File.basename(a))
+      # copy css
+      if @options[:css].empty?
+        # if no custom css, copy from assets
+        @cache.assets[:stylesheets].each do |a|
+          FileUtils.cp(File.join(@cache.path, a), '.')
+          @content.add_stylesheet(a)
+        end
+      else
+        # otherwise copy custom css
+        FileUtils.cp(@options[:css], '.')
+        @content.add_stylesheet(File.basename(@options[:css]))
       end
-      Dir.glob(File.join(@parser.asset_root, '*.{jpeg,jpg,gif,png,svg}')).each do |a|
-        FileUtils.cp(a, '.')
-        @content.add_img(File.basename(a))
-      end
-      Dir.glob(File.join(@parser.asset_root, '*.xpgt')).each do |a|
-        FileUtils.cp(a, '.')
-        @content.add_page_template(File.basename(a))
+      @cache.assets[:images].each do |a|
+        FileUtils.cp(File.join(@cache.path, a), '.')
+        @content.add_image(a)
       end
     end
     
     def write_content
-      @content.metadata.title = @parser.title
-      @content.metadata.description = @parser.subtitle
       @content.save
     end
     
     def write_toc
-      @toc.title = @parser.title
-      @parser.toc.each do |t|
-        @toc.nav_map.add_nav_point(t.title, t.src)
-      end
+      @toc.title = @content.metadata.title
+      add_nav_points(@toc.nav_map, @parser.toc)
       @toc.save
     end
     
+    def add_nav_points(nav_collection, toc)
+      toc.each do |t|
+        nav_point = nav_collection.add_nav_point(t.title, t.src)
+        add_nav_points(nav_point, t.subitems) if t.subitems
+      end
+    end
+    
     def make_epub
-      filename = "#{@parser.title}.epub"
-      # TODO ==
-      system("zip -X9 '#{filename}' mimetype >/dev/null")
-      system("zip -Xr9D '#{filename}' * -xi mimetype >/dev/null")
-      # ==
-      FileUtils.mv(filename, '..')
+      @epub = "#{@content.metadata.title}.epub"
+      # TODO : use rubyzip lib
+      system("zip -X9 '#{@epub}' mimetype >/dev/null")
+      system("zip -Xr9D '#{@epub}' * -xi mimetype >/dev/null")
+      #
+      FileUtils.mv(@epub, '..')
     end
   end
 

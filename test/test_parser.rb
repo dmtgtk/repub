@@ -3,22 +3,19 @@ require 'repub'
 
 class TestParser < Test::Unit::TestCase
   
-  def setup
-    Dir.chdir(Repub.path)
-  end
-  
   def test_parser
-    p = Repub::Parser.new('p.html_272733222.html', 'tmp/p.html_272733222')
-    p.parse
-    assert_equal('p.html_272733222.epub', p.uid)
-    puts "UID: #{p.uid}"
-    assert_equal('Paraphrase of Advice from an Experienced Old Man', p.title)
-    puts "Title: #{p.title}"
-    assert_equal('(Nyams-myong rgan-po\'i \'bel-gtam yid-\'byung dmar-khrid) Geshe Ngawang Dhargyey written from notes taken by Alexander Berzin from the oral translation by Sharpa Rinpoche Dharamsala, India, September 5 - 12, 1975', p.subtitle)
-    puts "Subtitle: #{p.subtitle}"
-    puts "TOC: (#{p.toc.size} items)"
-    puts p.toc if !p.toc.empty?
-    assert_equal(0, p.toc.size)
+    cache = Repub::Fetcher.get('http://www.berzinarchives.com/web/x/prn/p.html_1614431902.html')
+    parser = Repub::Parser.new(cache)
+    parser.parse
+    assert_equal('f963050ead9ee7775a4155e13743d47bc851d5d8', parser.uid)
+    puts "UID: #{parser.uid}"
+    assert_equal('A Survey of Tibetan History', parser.title)
+    puts "Title: #{parser.title}"
+    assert_equal('Reading notes taken by Alexander Berzin fromTsepon, W. D. Shakabpa, Tibet: A Political History. New Haven, Yale University Press, 1967', parser.subtitle)
+    puts "Subtitle: #{parser.subtitle}"
+    puts parser.toc
+    assert_equal(51, parser.toc.size)
+    puts "TOC: (#{parser.toc.size} items)"
   end
 
 end
