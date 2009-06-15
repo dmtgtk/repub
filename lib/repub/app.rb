@@ -4,7 +4,7 @@ module Repub
   class App
     
     # Mix-in actual functionality
-    include Fetcher #, Parser, Generator
+    include Ttt, Fetcher #, Parser, Generator
 
     def self.name
       File.basename($0)

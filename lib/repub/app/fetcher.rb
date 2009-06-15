@@ -125,26 +125,6 @@ module Repub
         end
       end
       
-      class WgetHelper < FetchHelper
-        def cmd
-          'wget'
-        end
-        
-        def cmd_options
-          '-nv -E -H -k -p -nH -nd'
-        end
-      end
-      
-      class HttrackHelper < FetchHelper
-        def cmd
-          'httrack'
-        end
-        
-        def cmd_options
-          '-gB -r2 +*.css +*.jpg -*.xml -*.html'
-        end
-      end
-      
     end
   end
 end
