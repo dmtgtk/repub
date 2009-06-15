@@ -40,7 +40,16 @@ module Repub
 
     Dir.glob(search_me).each {|rb| p rb; require rb}
   end
+  
+end
 
+#
+# TODO 
+#
+class Object
+  def if_blank(value)
+    self.nil? || self.empty? ? value : self
+  end
 end
 
 $:.unshift Repub.libpath

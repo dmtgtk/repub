@@ -1,6 +1,7 @@
-require 'rubygems'
-require 'builder'
+#require 'rubygems'
+#require 'builder'
 require 'fileutils'
+require 'tmpdir'
 require 'repub/epub'
 
 module Repub
@@ -15,6 +16,9 @@ module Repub
   
       class Helper
         include Epub
+        
+        attr_reader :output_path
+        attr_reader :output_file
         
         def initialize(options)
           @options = options
@@ -40,31 +44,23 @@ module Repub
           @toc = Toc.new(@parser.uid)
           # TOC title is the same as in content
           @toc.title = @content.metadata.title
-          
-          # Output filename is the same as title
-          # TODO : add an option
-          @output_filename = @content.metadata.title + '.epub'
-          
-          # Prepend output path if it was given in options
-          if @options[:output_path]
-            output_path = File.join(File.expand_path(@options[:output_path]), @output_filename)
-          else
-            output_path = @output_filename
-          end
+
+          # Setup output filename and path
+          @output_path = File.expand_path(@options[:output_path].if_blank('.'))
+          @output_file = (@options[:output_file].if_blank(@content.metadata.title)) + '.epub'
           
           # Write EPUB
-          FileUtils.mkdir_p(output_path)
-          FileUtils.chdir(output_path) do
-            write_meta_inf
-            write_mime_type
-            write_assets
-            write_content
-            write_toc
-            make_epub
+          Dir.mktmpdir(App::name) do |tmp|
+            FileUtils.chdir(tmp) do
+              write_meta_inf
+              write_mime_type
+              write_assets
+              write_content
+              write_toc
+              make_epub
+            end
           end
-          
-          # FileUtils.rm_r(output_path)
-          @output_filename
+          self
         end
         
         private
@@ -140,10 +136,10 @@ module Repub
         
         def make_epub
           # TODO : use rubyzip lib
-          system("zip -X9 '#{@output_filename}' mimetype >/dev/null")
-          system("zip -Xr9D '#{@output_filename}' * -xi mimetype >/dev/null")
+          system("zip -X9 '#{@output_file}' mimetype >/dev/null")
+          system("zip -Xr9D '#{@output_file}' * -xi mimetype >/dev/null")
           #
-          FileUtils.mv(@output_filename, '..')
+          FileUtils.mv(@output_file, @output_path)
         end
       end
 

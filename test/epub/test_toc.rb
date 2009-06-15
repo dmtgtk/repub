@@ -1,14 +1,15 @@
 require 'test/unit'
 require 'rubygems'
 require 'hpricot'
-require 'repub'
+require 'repub/epub'
 
 class TestToc < Test::Unit::TestCase
   def test_toc_create
     x = Repub::Epub::Toc.new('some-name')
     s = x.to_xml
     #puts s
-    #doc = Hpricot(s)
+    doc = Hpricot(s)
+    # TODO 
   end
   
   def test_toc
@@ -21,7 +22,8 @@ class TestToc < Test::Unit::TestCase
     p11 = p1.add_nav_point('Chapter 1-1', 'chapter-1-1.html')
     p12 = p1.add_nav_point('Chapter 1-2', 'chapter-1-2.html')
     s = x.to_xml
-    puts s
-    #doc = Hpricot(s)
+    #puts s
+    doc = Hpricot(s)
+    # TODO 
   end
 end

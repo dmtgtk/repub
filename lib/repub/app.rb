@@ -25,9 +25,11 @@ module Repub
     def run
       #p options
       puts "Source:\t\t#{options[:url]}"
-      puts "Output path:\t#{options[:output_path]}"
       
-      write(parse(fetch))
+      res = write(parse(fetch))
+      
+      puts "Output path:\t#{res.output_path}"
+      puts "Output file:\t#{res.output_file}"
       
       # Repub::Fetcher.get(options) do |cache|
       #   Repub::Parser.parse(cache, options) do |parser|
@@ -49,6 +51,7 @@ module Repub
         :url            => '',
         :css            => '',
         :output_path    => Dir.getwd,
+        :output_file    => '',
         :helper         => 'wget',
         :metadata       => {},
         :verbosity      => 0,
