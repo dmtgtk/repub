@@ -9,7 +9,7 @@ module Repub
       class FetcherException < RuntimeError; end
 
       def fetch
-        FetchHelper.new(options[:helper]).fetch(options[:url])
+        Helper.new(options[:helper]).fetch(options[:url])
       end
     
       AssetTypes = {
@@ -18,6 +18,49 @@ module Repub
         :images => %w[jpg jpeg png gif svg]
       }
   
+      class Helper
+        Downloaders = {
+          :wget     => { :cmd => 'wget', :options => '-nv -E -H -k -p -nH -nd' },
+          :httrack  => { :cmd => 'httrack', :options => '-gB -r2 +*.css +*.jpg -*.xml -*.html' }
+        }
+        
+        def initialize(name)
+          @downloader_path, @downloader_options = ENV['REPUB_HELPER'], ENV['REPUB_downloader_options']
+          begin
+            downloader = Downloaders[name.to_sym] rescue Downloaders[:wget]
+            @downloader_path ||= which(downloader[:cmd])
+            @downloader_options ||= downloader[:options]
+          rescue RuntimeError
+            raise FetcherException, "unknown helper '#{name}'"
+          end
+        end
+        
+        def fetch(url)
+          raise FetcherException, "empty URL" if url.nil? || url.empty?
+          begin
+            URI.parse(url)
+          rescue
+            raise FetcherException, "invalid URL: #{url}"
+          end
+          cmd = "#{@downloader_path} #{@downloader_options} #{url}"
+          Cache.for_url(url) do |cache|
+            unless system(cmd) && !cache.empty?
+              raise FetcherException, "Fetch failed."
+            end
+          end
+        end
+        
+        private
+        
+        def which(cmd)
+          if !RUBY_PLATFORM.match('mswin')
+            cmd = `/usr/bin/which #{cmd}`.strip
+            raise FetcherException, "#{cmd}: helper not found." if cmd.empty?
+          end
+          cmd
+        end
+      end
+
       class Cache
         CACHE_ROOT = File.join(File.expand_path('~'), %w[.repub cache])
       
@@ -81,47 +124,6 @@ module Repub
           @url = url
           @name = Digest::SHA1.hexdigest(@url)
           @path = File.join(CACHE_ROOT, @name)
-        end
-      end
-      
-      class Helper
-        HelperCommand = {
-          :wget     => { :cmd => 'wget', :options => '-nv -E -H -k -p -nH -nd' },
-          :httrack  => { :cmd => 'httrack', :options => '-gB -r2 +*.css +*.jpg -*.xml -*.html' }
-        }
-        
-        def initialize(name)
-          @helper_path, @helper_options = ENV['REPUB_HELPER'], ENV['REPUB_HELPER_OPTIONS']
-          begin
-            helper = HelperCommand[name.to_sym] rescue HelperCommand[:wget]
-            @helper_path ||= which(helper[:cmd])
-            @helper_options ||= helper[:options]
-          rescue
-            raise FetcherException, "unknown helper '#{name}'"
-          end
-        end
-        
-        def fetch(url)
-          raise FetcherException, "empty URL" if url.nil? || url.empty?
-          begin
-            URI.parse(url)
-          rescue
-            raise FetcherException, "invalid URL: #{url}"
-          end
-          cmd = "#{@helper_path} #{@helper_options} #{url}"
-          Cache.for_url(url) do |cache|
-            unless system(cmd) && !cache.empty?
-              raise FetcherException, "Fetch failed."
-            end
-          end
-        end
-        
-        private
-        
-        def which
-          res = `/usr/bin/which #{helper}`.strip
-          raise FetcherException, "#{helper}: helper not found." if res.empty?
-          res
         end
       end
       

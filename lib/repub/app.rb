@@ -1,16 +1,20 @@
 require 'optparse'
+require 'repub/app/fetcher'
+require 'repub/app/parser'
+require 'repub/app/writer'
 
 module Repub
   class App
     
     # Mix-in actual functionality
-    include Ttt, Fetcher #, Parser, Generator
+    include Fetcher, Parser, Writer
 
     def self.name
       File.basename($0)
     end
     
     def self.run(args)
+      #Fetcher.append_features(self)
       self.new(args).run
     end
     
@@ -23,7 +27,8 @@ module Repub
       puts "Source:\t\t#{options[:url]}"
       puts "Output path:\t#{options[:output_path]}"
       
-      generate(parse(fetch))
+      write(parse(fetch))
+      
       # Repub::Fetcher.get(options) do |cache|
       #   Repub::Parser.parse(cache, options) do |parser|
       #     res = Repub::Writer.write(parser, cache, options)
@@ -47,7 +52,7 @@ module Repub
         :helper         => 'wget',
         :metadata       => {},
         :verbosity      => 0,
-        :selector       => Parser::Selectors
+        :selectors      => Parser::Selectors
       }
       
       get_selector_values = lambda do
