@@ -1,12 +1,13 @@
 require 'test/unit'
 require 'rubygems'
 require 'hpricot'
-require 'repub'
+require 'repub/epub'
 
 class TestContent < Test::Unit::TestCase
   def test_manifest_create
     x = Repub::Epub::Content.new('some-name')
     s = x.to_xml
+    #puts s
     doc = Hpricot(s)
   
     # manifest was created
@@ -24,19 +25,17 @@ class TestContent < Test::Unit::TestCase
   def test_manifest
     x = Repub::Epub::Content.new('some-name')
     x.add_page_template
-    x.add_css 'style.css'
-    x.add_css 'more-style.css'
-    x.add_img ' logo.jpg '
-    x.add_img ' image.png'
-    x.add_img 'picture.jpeg     '
-    x.add_html 'intro.html', 'intro'
-    x.add_html 'chapter-1.html'
-    x.add_html 'glossary.html', 'glossary'
-
+    x.add_stylesheet 'style.css'
+    x.add_stylesheet 'more-style.css'
+    x.add_image ' logo.jpg '
+    x.add_image ' image.png'
+    x.add_image 'picture.jpeg     '
+    x.add_document 'intro.html', 'intro'
+    x.add_document 'chapter-1.html'
+    x.add_document 'glossary.html', 'glossary'
     s = x.to_xml
+    #puts s
     doc = Hpricot(s)
-  
-    puts s
   
     # manifest was created
     assert_not_nil(doc.search('manifest'))

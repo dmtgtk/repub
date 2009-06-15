@@ -38,9 +38,19 @@ module Repub
     search_me = File.expand_path(
         File.join(File.dirname(fname), dir, '**', '*.rb'))
 
-    Dir.glob(search_me).sort.each {|rb| require rb}
+    Dir.glob(search_me).each {|rb| p rb; require rb}
   end
-
+  
 end
 
-Repub.require_all_libs_relative_to(__FILE__)
+#
+# TODO 
+#
+class Object
+  def if_blank(value)
+    self.nil? || self.empty? ? value : self
+  end
+end
+
+$:.unshift Repub.libpath
+#Repub.require_all_libs_relative_to(__FILE__)

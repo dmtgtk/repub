@@ -1,12 +1,20 @@
 require 'test/unit'
 require 'repub'
+require 'repub/app'
 
 class TestFetcher < Test::Unit::TestCase
   
+  include Repub::App::Fetcher
+  attr_reader :options
+  
   def test_fetcher
+    @options = {
+      :url            => 'http://www.berzinarchives.com/web/x/prn/p.html_1614431902.html',
+      :helper         => 'wget'
+    }
     assert_nothing_raised do
-      cache = Repub::Fetcher.get('http://www.berzinarchives.com/web/x/prn/p.html_1614431902.html')
-      p cache
+      cache = fetch
+      #p cache
       assert_equal('http://www.berzinarchives.com/web/x/prn/p.html_1614431902.html', cache.url)
       assert(cache.path.include?('.repub/cache/f963050ead9ee7775a4155e13743d47bc851d5d8'))
       assert_equal('f963050ead9ee7775a4155e13743d47bc851d5d8', cache.name)
@@ -15,10 +23,14 @@ class TestFetcher < Test::Unit::TestCase
   end
 
   def test_fetcher_fail
-    assert_raise(Repub::FetcherException) do
-      cache = Repub::Fetcher.get('non-existing')
-      p cache
-    end
+    @options = {
+      :url            => 'not-existing',
+      :helper         => 'wget'
+    }
+   assert_raise(Repub::App::FetcherException) do
+     cache = fetch
+     #p cache
+   end
   end
 
 end

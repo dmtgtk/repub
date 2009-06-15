@@ -1,45 +1,61 @@
 require 'optparse'
+require 'repub/app/fetcher'
+require 'repub/app/parser'
+require 'repub/app/writer'
 
 module Repub
   class App
-
-    def self.run(args)
-      self.new.run args
-    end
     
+    # Mix-in actual functionality
+    include Fetcher, Parser, Writer
+
     def self.name
       File.basename($0)
     end
     
-    def run(args)
+    def self.run(args)
+      #Fetcher.append_features(self)
+      self.new(args).run
+    end
+    
+    def initialize(args)
       parse_options(args)
-      
+    end
+    
+    def run
       #p options
       puts "Source:\t\t#{options[:url]}"
-      puts "Output path:\t#{options[:output_path]}"
       
-      Repub::Fetcher.get(options) do |cache|
-        Repub::Parser.parse(cache, options) do |parser|
-          res = Repub::Writer.write(parser, cache, options)
-          puts "EPUB:\t\t#{res}"
-        end
-      end
+      res = write(parse(fetch))
+      
+      puts "Output path:\t#{res.output_path}"
+      puts "Output file:\t#{res.output_file}"
+      
+      # Repub::Fetcher.get(options) do |cache|
+      #   Repub::Parser.parse(cache, options) do |parser|
+      #     res = Repub::Writer.write(parser, cache, options)
+      #     puts "EPUB:\t\t#{res}"
+      #   end
+      # end
     rescue RuntimeError => ex
       STDERR.puts "ERROR: #{ex.to_s}"
       exit 1
     end
     
     attr_reader :options
+
+    private
     
     def parse_options(args)
       @options = {
         :url            => '',
         :css            => '',
         :output_path    => Dir.getwd,
+        :output_file    => '',
         :helper         => 'wget',
         :metadata       => {},
         :verbosity      => 0,
-        :selector       => Parser::Selectors
+        :selectors      => Parser::Selectors
       }
       
       get_selector_values = lambda do
@@ -125,7 +141,7 @@ module Repub
           exit 1
         end
       end
-    
     end
+  
   end
 end
