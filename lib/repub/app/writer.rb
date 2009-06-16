@@ -50,6 +50,7 @@ module Repub
           @output_file = (@options[:output_file].if_blank(@content.metadata.title)) + '.epub'
           
           # Write EPUB
+          # NOTE: Dir::mktmpdir is in >=1.8.7
           Dir.mktmpdir(App::name) do |tmp|
             FileUtils.chdir(tmp) do
               write_meta_inf
