@@ -14,14 +14,13 @@ module Repub
     end
     
     def self.run(args)
-      #Fetcher.append_features(self)
       self.new(args).run
     end
     
     def initialize(args)
       parse_options(args)
     end
-    
+
     def run
       #p options
       puts "Source:\t\t#{options[:url]}"
@@ -30,13 +29,7 @@ module Repub
       
       puts "Output path:\t#{res.output_path}"
       puts "Output file:\t#{res.output_file}"
-      
-      # Repub::Fetcher.get(options) do |cache|
-      #   Repub::Parser.parse(cache, options) do |parser|
-      #     res = Repub::Writer.write(parser, cache, options)
-      #     puts "EPUB:\t\t#{res}"
-      #   end
-      # end
+
     rescue RuntimeError => ex
       STDERR.puts "ERROR: #{ex.to_s}"
       exit 1
