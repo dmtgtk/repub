@@ -136,8 +136,8 @@ module Repub
         
         def make_epub
           # TODO : use rubyzip lib
-          system("zip -X9 '#{@output_file}' mimetype >/dev/null")
-          system("zip -Xr9D '#{@output_file}' * -xi mimetype >/dev/null")
+          `zip -X9 \"#{@output_file}\" mimetype`
+          `zip -Xr9D \"#{@output_file}\" * -xi mimetype`
           #
           FileUtils.mv(@output_file, @output_path)
         end
