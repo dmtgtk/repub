@@ -18,7 +18,6 @@ module Repub
         include Epub
         
         attr_reader :output_path
-        attr_reader :output_file
         
         def initialize(options)
           @options = options
@@ -47,7 +46,10 @@ module Repub
 
           # Setup output filename and path
           @output_path = File.expand_path(@options[:output_path].if_blank('.'))
-          @output_file = (@options[:output_file].if_blank(@content.metadata.title)) + '.epub'
+          if File.exist?(@output_path) && File.directory?(@output_path)
+            @output_path = File.join(@output_path, @content.metadata.title)
+          end
+          @output_path = @output_path +  '.epub'
           
           # Write EPUB
           # NOTE: Dir::mktmpdir is in >=1.8.7
@@ -136,11 +138,8 @@ module Repub
         end
         
         def make_epub
-          # TODO : use rubyzip lib
-          %x(zip -X9 \"#{@output_file}\" mimetype)
-          %x(zip -Xr9D \"#{@output_file}\" * -xi mimetype)
-          #
-          FileUtils.mv(@output_file, @output_path)
+          %x(zip -X9 \"#{@output_path}\" mimetype)
+          %x(zip -Xr9D \"#{@output_path}\" * -xi mimetype)
         end
       end
 

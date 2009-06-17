@@ -27,8 +27,7 @@ module Repub
       
       res = write(parse(fetch))
       
-      puts "Output path:\t#{res.output_path}"
-      puts "Output file:\t#{res.output_file}"
+      puts "Output:\t\t#{res.output_path}"
 
     rescue RuntimeError => ex
       STDERR.puts "ERROR: #{ex.to_s}"
@@ -44,16 +43,11 @@ module Repub
         :url            => '',
         :css            => '',
         :output_path    => Dir.getwd,
-        :output_file    => '',
         :helper         => 'wget',
         :metadata       => {},
         :verbosity      => 0,
         :selectors      => Parser::Selectors
       }
-      
-      get_selector_values = lambda do
-        options[:selector].keys.map(&:to_s).sort.map {|k| "  #{k}: #{Parser::Selectors[k.to_sym]}"}
-      end
       
       parser = OptionParser.new do |opts|
         opts.banner = <<-BANNER.gsub(/^          /,'')
@@ -83,7 +77,7 @@ module Repub
           "Set parser selector NAME to VALUE."
         ) do |value|
           name, value = value.split(/:/)
-          options[:selector][name.to_sym] = value
+          options[:selectors][name.to_sym] = value
         end
         
         opts.on("-D", "--downloader=NAME", String,
@@ -114,10 +108,10 @@ module Repub
 
         opts.on_tail("-h", "--help",
           "Show this help message."
-        ) { puts opts; exit 1 }
+        ) { help opts; exit 1 }
         
         if args.empty?
-          puts opts
+          help opts
           exit 1
         end
         
@@ -133,6 +127,15 @@ module Repub
           STDERR.puts "ERROR: Please specify an URL. See '#{App.name} --help'."
           exit 1
         end
+      end
+    end
+      
+    def help(opts)
+      puts opts
+      puts
+      puts "Current selectors:"
+      options[:selectors].keys.map(&:to_s).sort.map do |k|
+        printf("    %11s: %s\n", k, options[:selectors][k.to_sym]) 
       end
     end
   
