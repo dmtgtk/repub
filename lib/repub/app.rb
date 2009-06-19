@@ -6,6 +6,8 @@ require 'repub/app/writer'
 module Repub
   class App
     
+    REPUB_ROOT = File.join(File.expand_path('~'), '.repub')
+    
     # Mix-in actual functionality
     include Fetcher, Parser, Writer
 
@@ -49,6 +51,8 @@ module Repub
         :selectors      => Parser::Selectors
       }
       
+      @profiles = {}
+      
       parser = OptionParser.new do |opts|
         opts.banner = <<-BANNER.gsub(/^          /,'')
           
@@ -59,12 +63,12 @@ module Repub
           Options are:
         BANNER
         
-        opts.on("-s", "--stylesheet=PATH", String,
+        opts.on("-s", "--stylesheet PATH", String,
           "Use custom stylesheet at PATH to override existing",
           "CSS references in the source file(s)."
         ) { |value| options[:css] = File.expand_path(value) }
         
-        opts.on("-m", "--meta=NAME:VALUE", String,
+        opts.on("-m", "--meta NAME:VALUE", String,
           "Set publication information metadata NAME to VALUE.",
           "Valid metadata names are: creator date description",
           "language publisher relation rights subject title"
@@ -73,22 +77,32 @@ module Repub
           options[:metadata][name.to_sym] = value
         end
         
-        opts.on("-x", "--selector=NAME:VALUE", String,
+        opts.on("-x", "--selector NAME:VALUE", String,
           "Set parser selector NAME to VALUE."
         ) do |value|
           name, value = value.split(/:/)
           options[:selectors][name.to_sym] = value
         end
         
-        opts.on("-D", "--downloader=NAME", String,
+        opts.on("-D", "--downloader NAME", String,
           "Which downloader to use to get files (\"wget\" or \"httrack\").",
           "Default is #{options[:helper]}."
         ) { |value| options[:helper] = value }
         
-        opts.on("-o", "--output=PATH", String,
+        opts.on("-o", "--output PATH", String,
           "Output path for generated ePub file.",
           "Default is current directory (#{options[:output_path]})."
         ) { |value| options[:output_path] = File.expand_path(value) }
+        
+        opts.on("-w", "--write-profile [NAME]", String,
+          "Save given options for later reuse as profile NAME.",
+          "If name is omitted, save to the default profile."
+        ) { |value| write_profile(value) }
+        
+        opts.on("-l", "--load-profile [NAME]", String,
+          "Load options from saved profile NAME.",
+          "If name is omitted, load the default profile."
+        ) { |value| load_profile(value) }
         
         opts.on("-C", "--cleanup",
           "Clean up download cache."
@@ -130,6 +144,8 @@ module Repub
       end
     end
       
+    PROFILE_PATH = File.join(REPUB_ROOT, 'profiles')
+    
     def help(opts)
       puts opts
       puts
@@ -137,6 +153,21 @@ module Repub
       options[:selectors].keys.map(&:to_s).sort.map do |k|
         printf("    %11s: %s\n", k, options[:selectors][k.to_sym]) 
       end
+    end
+    
+    def load_profiles
+      @profiles = YAML.load_file(PROFILE_PATH)
+    end
+    
+    def save_profiles
+      File.open(PROFILE_PATH, 'w') do |f|
+        YAML.dump(@profiles, f)
+      end
+    end
+    
+    def write_profile(name)
+      p name
+      @profiles
     end
   
   end

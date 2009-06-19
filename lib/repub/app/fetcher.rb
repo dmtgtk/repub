@@ -62,10 +62,8 @@ module Repub
       end
 
       class Cache
-        CACHE_ROOT = File.join(File.expand_path('~'), %w[.repub cache])
-      
         def self.root
-          return CACHE_ROOT
+          return File.join(App::REPUB_ROOT, 'cache')
         end
       
         def self.inventorize
@@ -73,7 +71,7 @@ module Repub
         end
       
         def self.cleanup
-          Dir.chdir(CACHE_ROOT) { FileUtils.rm_r(Dir.glob('*')) }
+          Dir.chdir(self.root) { FileUtils.rm_r(Dir.glob('*')) }
         rescue
           # ignore exceptions
         end
@@ -123,7 +121,7 @@ module Repub
         def initialize(url)
           @url = url
           @name = Digest::SHA1.hexdigest(@url)
-          @path = File.join(CACHE_ROOT, @name)
+          @path = File.join(Cache.root, @name)
         end
       end
       
