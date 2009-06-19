@@ -39,7 +39,17 @@ module Repub
           
           @cache = cache
           @asset = @cache.assets[:documents][0]
-          @doc = Hpricot(open(File.join(@cache.path, @asset)))
+          @doc = Hpricot(open(File.join(@cache.path, @asset)), :xhtml_strict => true)
+          
+          # TODO ==
+          if !@doc.root.doctype?
+            @doc.root.before('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">')
+          end
+          File.open(File.join(@cache.path, @asset), 'w') do |f|
+            f << @doc.to_html
+          end
+          # ==
+          
           @uid = @cache.name
           parse_title
           parse_title_html
