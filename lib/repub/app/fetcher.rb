@@ -63,7 +63,7 @@ module Repub
 
       class Cache
         def self.root
-          return File.join(App::REPUB_ROOT, 'cache')
+          return File.join(App.data_path, 'cache')
         end
       
         def self.inventorize
