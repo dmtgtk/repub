@@ -30,5 +30,6 @@ PROJ.spec.opts << '--color'
 
 depend_on 'builder'
 depend_on 'hpricot'
+depend_on 'chardet'
 
 # EOF

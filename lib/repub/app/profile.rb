@@ -2,12 +2,12 @@ module Repub
   class App
     module Profile
 
-      PROFILE_KEYS = %w[css helper metadata selectors].map(&:to_sym)
+      PROFILE_KEYS = %w[css encoding helper metadata selectors].map(&:to_sym)
       
       def load_profile(name = nil)
         name ||= 'Default'
         profile = Profile.new
-        PROFILE_KEYS.each { |key| options[key] = profile[name][key] }
+        PROFILE_KEYS.each { |key| options[key] = profile[name][key] if profile[name][key] }
         profile.save
       end
       

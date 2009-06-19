@@ -87,7 +87,7 @@ module Repub
         def write_assets
           # copy html
           @parser.cache.assets[:documents].each do |a|
-            if @options[:css].empty?
+            if @options[:css].nil? || @options[:css].empty?
               # copy file verbatim
               FileUtils.cp(File.join(@parser.cache.path, a), '.')
             else
@@ -103,7 +103,7 @@ module Repub
             @content.add_document(a)
           end
           # copy css
-          if @options[:css].empty?
+          if @options[:css].nil? || @options[:css].empty?
             # if no custom css, copy from assets
             @parser.cache.assets[:stylesheets].each do |a|
               FileUtils.cp(File.join(@parser.cache.path, a), '.')

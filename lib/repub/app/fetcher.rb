@@ -1,6 +1,9 @@
 require 'fileutils'
 require 'digest/sha1'
 require 'uri'
+require 'iconv'
+require 'rubygems'
+require 'UniversalDetector'
 
 module Repub
   class App
@@ -96,9 +99,10 @@ module Repub
               raise
             end
           end
-          # enumerate assets
+          # do post-download tasks
           if File.exist?(@path)
             Dir.chdir(@path) do
+              # enumerate assets
               @assets = {}
               AssetTypes.each_pair do |asset_type, file_types|
                 @assets[asset_type] ||= []
@@ -106,6 +110,15 @@ module Repub
                   @assets[asset_type] << Dir.glob("*.#{file_type}")
                 end
                 @assets[asset_type].flatten!
+              end
+              # detect encoding and convert to utf-8 if needed
+              @assets[:documents].each do |doc|
+                s = IO.read(doc)
+                encoding = UniversalDetector::chardet(s)['encoding']
+                if encoding.downcase != 'utf-8'
+                  s = Iconv.conv('utf-8', encoding, s)
+                  File.open(doc, 'w') { |f| f.write(s) }
+                end
               end
             end
           end

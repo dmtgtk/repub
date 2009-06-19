@@ -52,11 +52,13 @@ module Repub
         private
         
         def parse_title
-          @doc.at(@selectors[:title]).inner_text.gsub(/[\r\n]/, '').gsub(/\s+/, ' ')
+          el = @doc.at(@selectors[:title])
+          el ? el.inner_text.gsub(/[\r\n]/, '').gsub(/\s+/, ' ') : 'Untitled'
         end
         
         def parse_title_html
-          @doc.at(@selectors[:title]).inner_html.gsub(/[\r\n]/, '')
+          el = @doc.at(@selectors[:title])
+          el ? el.inner_html.gsub(/[\r\n]/, '') : 'Untitled'
         end
         
         class TocItem < Struct.new(
@@ -85,19 +87,21 @@ module Repub
         
         def parse_toc_section(section)
           toc = []
-          section.search(@selectors[:toc_item]).each do |item|
-            #puts "=== Item ==="
-            href = item.at('a')['href']
-            next if href.empty?
-            title = item.at('a').inner_text
-            subitems = nil
-            #p "#{title}"
-            item.search(@selectors[:toc_section]).each do |subsection|
-              #puts '--- Section >>>'
-              subitems = parse_toc_section(subsection)
-              #puts '<<<'
+          if section
+            section.search(@selectors[:toc_item]).each do |item|
+              #puts "=== Item ==="
+              href = item.at('a')['href']
+              next if href.empty?
+              title = item.at('a').inner_text
+              subitems = nil
+              #p "#{title}"
+              item.search(@selectors[:toc_section]).each do |subsection|
+                #puts '--- Section >>>'
+                subitems = parse_toc_section(subsection)
+                #puts '<<<'
+              end
+              toc << TocItem.new(title, href, subitems, @asset)
             end
-            toc << TocItem.new(title, href, subitems, @asset)
           end
           toc
         end

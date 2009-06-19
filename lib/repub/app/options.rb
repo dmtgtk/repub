@@ -7,22 +7,21 @@ module Repub
       attr_reader :options
 
       def parse_options(args)
-        # Initialize default options
+        # Default options
         @options = {
-          :url            => nil,
           :css            => nil,
-          :output_path    => Dir.getwd,
+          :encoding       => nil,
           :helper         => 'wget',
           :metadata       => {},
-          :verbosity      => 0,
-          :selectors      => Parser::Selectors
+          :output_path    => Dir.getwd,
+          :selectors      => Parser::Selectors,
+          :url            => nil,
+          :verbosity      => 0
         }
 
         # Load default profile
         load_profile
         
-        p @options
-
         # Parse command line
         parser = OptionParser.new do |opts|
           opts.banner = <<-BANNER.gsub(/^          /,'')
@@ -33,6 +32,10 @@ module Repub
 
             Options are:
           BANNER
+
+          opts.on("-e", "--encoding NAME", String,
+            "Set source document encoding."
+          ) { |value| options[:encoding] = value }
 
           opts.on("-s", "--stylesheet PATH", String,
             "Use custom stylesheet at PATH to override existing",
@@ -52,8 +55,6 @@ module Repub
             "Set parser selector NAME to VALUE."
           ) do |value|
             name, value = value.split(/:/)
-            p name, value
-            p @options[:selectors]
             options[:selectors][name.to_sym] = value
           end
 
@@ -67,15 +68,17 @@ module Repub
             "Default is current directory (#{options[:output_path]})."
           ) { |value| options[:output_path] = File.expand_path(value) }
 
-          opts.on("-w", "--write-profile [NAME]", String,
-            "Save given options for later reuse as profile NAME.",
-            "If name is omitted, save to the default profile."
+          opts.on("-w", "--write-profile NAME", String,
+            "Save given options for later reuse as profile NAME."
           ) { |value| write_profile(value) }
 
           opts.on("-l", "--load-profile NAME", String,
-            "Load options from saved profile NAME.",
-            "Default profile is always loaded first."
+            "Load options from saved profile NAME."
           ) { |value| load_profile(value) }
+
+          opts.on("-W", "--write-default",
+            "Save given options for later reuse as default profile."
+          ) { write_profile }
 
           opts.on("-C", "--cleanup",
             "Clean up download cache."
