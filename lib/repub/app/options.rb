@@ -34,18 +34,19 @@ module Repub
           BANNER
 
           opts.on("-e", "--encoding NAME", String,
-            "Set source document encoding."
+            "Set source document encoding.",
+            "Default is autodetect."
           ) { |value| options[:encoding] = value }
 
           opts.on("-s", "--stylesheet PATH", String,
             "Use custom stylesheet at PATH to override existing",
-            "CSS references in the source file(s)."
+            "CSS references in the source document."
           ) { |value| options[:css] = File.expand_path(value) }
 
           opts.on("-m", "--meta NAME:VALUE", String,
             "Set publication information metadata NAME to VALUE.",
-            "Valid metadata names are: creator date description",
-            "language publisher relation rights subject title"
+            "Valid metadata names are: [creator date description",
+            "language publisher relation rights subject title]"
           ) do |value|
             name, value = value.split(/:/)
             options[:metadata][name.to_sym] = value
@@ -65,7 +66,7 @@ module Repub
 
           opts.on("-o", "--output PATH", String,
             "Output path for generated ePub file.",
-            "Default is current directory (#{options[:output_path]})."
+            "Default is #{options[:output_path]}/<Title>.epub"
           ) { |value| options[:output_path] = File.expand_path(value) }
 
           opts.on("-w", "--write-profile NAME", String,
@@ -79,6 +80,10 @@ module Repub
           opts.on("-W", "--write-default",
             "Save given options for later reuse as default profile."
           ) { write_profile }
+
+          opts.on("-L", "--list-profiles",
+            "List saved profiles."
+          ) { list_profiles; exit 1 }
 
           opts.on("-C", "--cleanup",
             "Clean up download cache."
