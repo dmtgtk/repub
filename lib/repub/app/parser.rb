@@ -112,7 +112,12 @@ module Repub
         def parse_title
           el = @doc.at(@selectors[:title])
           if el
-            @title = el.inner_text.gsub(/[\r\n]/, '').gsub(/\s+/, ' ')
+            if el.children.empty?
+              title_text = el.inner_text
+            else
+              title_text =  el.children.map(&:inner_text).join(' ')
+            end
+            @title = title_text.gsub(/[\r\n]/, '').gsub(/\s+/, ' ')
             puts "Title:\t\t\"#{@title}\""
           else
             @title = UNTITLED
@@ -160,9 +165,11 @@ module Repub
           toc = []
           section.search(@selectors[:toc_item]).each do |item|
             #puts "=== Item ==="
-            href = item.at('a')['href']
-            next if href.empty?
-            title = item.at('a').inner_text
+            a = item.at('a')
+            next if a.nil?
+            href = a['href']
+            next if href.nil?
+            title = a.inner_text
             subitems = nil
             #p "#{title}"
             item.search(@selectors[:toc_section]).each do |subsection|
