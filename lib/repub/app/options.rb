@@ -35,48 +35,9 @@ module Repub
             Repub is a simple HTML to ePub converter.
 
             Usage: #{App.name} [options] url
-
-            Options are:
+            
+            General options:
           BANNER
-
-          opts.on("-e", "--encoding NAME", String,
-            "Set source document encoding.",
-            "Default is autodetect."
-          ) { |value| options[:encoding] = value }
-
-          opts.on("-F", "--no-fixup",
-            "Do not attempt to make document meet XHTML 1.0 Strict.",
-            "Default is to try to fix things that are broken. "
-          ) { |value| options[:fixup] = false }
-
-          opts.on("-X", "--xpath-remove SELECTOR", String,
-            "Remove element using XPath selector."
-          ) { |value| options[:remove] << value }
-          
-          opts.on("-R", "--rx /PATTERN/REPLACEMENT/", String,
-            "Edit raw HTML using regular expressions."
-          ) { |value| options[:rx] << value }
-
-          opts.on("-s", "--stylesheet PATH", String,
-            "Use custom stylesheet at PATH to override existing",
-            "CSS references in the source document."
-          ) { |value| options[:css] = File.expand_path(value) }
-
-          opts.on("-m", "--meta NAME:VALUE", String,
-            "Set publication information metadata NAME to VALUE.",
-            "Valid metadata names are: [creator date description",
-            "language publisher relation rights subject title]"
-          ) do |value|
-            name, value = value.split(/:/)
-            options[:metadata][name.to_sym] = value
-          end
-
-          opts.on("-x", "--selector NAME:VALUE", String,
-            "Set parser selector NAME to VALUE."
-          ) do |value|
-            name, value = value.split(/:/)
-            options[:selectors][name.to_sym] = value
-          end
 
           opts.on("-D", "--downloader NAME ", ['wget', 'httrack'],
               "Which downloader to use to get files (wget or httrack).",
@@ -85,7 +46,7 @@ module Repub
 
           opts.on("-o", "--output PATH", String,
             "Output path for generated ePub file.",
-            "Default is #{options[:output_path]}/<Title>.epub"
+            "Default is #{options[:output_path]}/<Parsed_Title>.epub"
           ) { |value| options[:output_path] = File.expand_path(value) }
 
           opts.on("-w", "--write-profile NAME", String,
@@ -116,13 +77,59 @@ module Repub
             "Turn off any output except errors."
           ) { options[:verbosity] = -1 }
 
-          opts.on_tail("-V", "--version",
+          opts.on("-V", "--version",
             "Show version."
           ) { puts Repub.version; exit 1 }
 
-          opts.on_tail("-h", "--help",
+          opts.on("-h", "--help",
             "Show this help message."
           ) { help opts; exit 1 }
+          
+          opts.separator ""
+          opts.separator "  Parser options:"
+          
+          opts.on("-x", "--selector NAME:VALUE", String,
+            "Set parser XPath or CSS selector NAME to VALUE.",
+            "Recognized selectors are: [title toc toc_item toc_section]"
+          ) do |value|
+            name, value = value.split(/:/)
+            options[:selectors][name.to_sym] = value
+          end
+
+          opts.on("-m", "--meta NAME:VALUE", String,
+            "Set publication information metadata NAME to VALUE.",
+            "Valid metadata names are: [creator date description",
+            "language publisher relation rights subject title]"
+          ) do |value|
+            name, value = value.split(/:/)
+            options[:metadata][name.to_sym] = value
+          end
+
+          opts.on("-F", "--no-fixup",
+            "Do not attempt to make document meet XHTML 1.0 Strict.",
+            "Default is to try and fix things that are broken. "
+          ) { |value| options[:fixup] = false }
+
+          opts.on("-e", "--encoding NAME", String,
+            "Set source document encoding. Default is to autodetect."
+          ) { |value| options[:encoding] = value }
+
+          opts.separator ""
+          opts.separator "  Post-processing options:"
+          
+          opts.on("-s", "--stylesheet PATH", String,
+            "Use custom stylesheet at PATH to add or override existing",
+            "CSS references in the source document."
+          ) { |value| options[:css] = File.expand_path(value) }
+
+          opts.on("-X", "--remove SELECTOR", String,
+            "Remove source element using XPath or CSS selector."
+          ) { |value| options[:remove] << value }
+          
+          opts.on("-R", "--rx /PATTERN/REPLACEMENT/", String,
+            "Edit raw source HTML using regular expressions."
+          ) { |value| options[:rx] << value }
+
         end
 
         if args.empty?
@@ -148,7 +155,7 @@ module Repub
       def help(opts)
         puts opts
         puts
-        puts "Current profile (#{options[:profile]}):"
+        puts "  Current profile (#{options[:profile]}):"
         dump_profile(options[:profile])
         puts
       end
