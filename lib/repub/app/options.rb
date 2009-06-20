@@ -11,10 +11,13 @@ module Repub
         @options = {
           :css            => nil,
           :encoding       => nil,
+          :fixup          => true,
           :helper         => 'wget',
           :metadata       => {},
           :output_path    => Dir.getwd,
           :profile        => 'default',
+          :remove         => [],
+          :rx             => [],
           :selectors      => Parser::Selectors,
           :url            => nil,
           :verbosity      => 0
@@ -40,6 +43,19 @@ module Repub
             "Set source document encoding.",
             "Default is autodetect."
           ) { |value| options[:encoding] = value }
+
+          opts.on("-F", "--no-fixup",
+            "Do not attempt to make document meet XHTML 1.0 Strict.",
+            "Default is to try to fix things that are broken. "
+          ) { |value| options[:fixup] = false }
+
+          opts.on("-X", "--xpath-remove SELECTOR", String,
+            "Remove element using XPath selector."
+          ) { |value| options[:remove] << value }
+          
+          opts.on("-R", "--rx /PATTERN/REPLACEMENT/", String,
+            "Edit raw HTML using regular expressions."
+          ) { |value| options[:rx] << value }
 
           opts.on("-s", "--stylesheet PATH", String,
             "Use custom stylesheet at PATH to override existing",

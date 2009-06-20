@@ -47,7 +47,7 @@ module Repub
           # Setup output filename and path
           @output_path = File.expand_path(@options[:output_path].if_blank('.'))
           if File.exist?(@output_path) && File.directory?(@output_path)
-            @output_path = File.join(@output_path, @content.metadata.title)
+            @output_path = File.join(@output_path, @content.metadata.title.gsub(/\s/, '_'))
           end
           @output_path = @output_path +  '.epub'
           

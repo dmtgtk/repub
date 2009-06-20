@@ -4,7 +4,7 @@ module Repub
   class App
     module Profile
 
-      PROFILE_KEYS = %w[css encoding helper metadata selectors].map(&:to_sym)
+      PROFILE_KEYS = %w[css encoding fixup helper metadata remove rx selectors].map(&:to_sym)
       
       def load_profile(name = nil)
         name ||= 'default'
@@ -31,7 +31,7 @@ module Repub
           keys = p.keys.map(&:to_s).sort.map(&:to_sym)
           keys.each do |k|
             v = p[k]
-            next if v.nil? || v.empty?
+            next if v.nil? || (v.respond_to?(:empty?) && v.empty?)
             case k
             when :selectors
               printf("%4s%-6s\n", '', k)

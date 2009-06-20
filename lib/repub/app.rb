@@ -25,9 +25,9 @@ module Repub
     def run(args)
       parse_options(args)
       #p options
-      puts "Converting #{options[:url]}"
+      puts "Source:\t\t#{options[:url]}"
       res = write(parse(fetch))
-      puts "Writing #{res.output_path}"
+      puts "Output:\t\t#{res.output_path}"
     rescue RuntimeError => ex
       STDERR.puts "ERROR: #{ex.to_s}"
       exit 1

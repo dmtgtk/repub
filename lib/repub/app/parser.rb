@@ -29,6 +29,9 @@ module Repub
         
         def initialize(options)
           @selectors = options[:selectors] || Selectors
+          @fixup = options[:fixup]
+          @remove = options[:remove]
+          @rx = options[:rx]
         end
         
         def parse(cache)
@@ -39,16 +42,11 @@ module Repub
           
           @cache = cache
           @asset = @cache.assets[:documents][0]
-          @doc = Hpricot(open(File.join(@cache.path, @asset)), :xhtml_strict => true)
-          
-          # TODO ==
-          if !@doc.root.doctype?
-            @doc.root.before('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">')
-          end
-          File.open(File.join(@cache.path, @asset), 'w') do |f|
-            f << @doc.to_html
-          end
-          # ==
+
+          do_rxes if @rx
+          do_xpath_removes if @remove
+          do_fixups if @fixup
+          @doc = Hpricot(open(File.join(@cache.path, @asset)))
           
           @uid = @cache.name
           parse_title
@@ -59,13 +57,61 @@ module Repub
         
         private
         
+        def do_rxes
+          if !@rx.empty?
+            s = IO.read(File.join(@cache.path, @asset))
+            @rx.each do |rx|
+              ra = rx.split(/(^|[^\\])\//).reject(&:empty?)
+              raise ParserException, "Invalid regular expression" if ra.empty?
+              pattern = ra[0,2].join.gsub(/\\/, '')
+              replacement = ra[2,2].join.gsub(/\\/, '')
+              puts "Replacing:\t\"#{pattern}\" => \"#{replacement}\""
+              s.gsub!(Regexp.new(pattern), replacement)
+            end
+            # Save fixed document
+            File.open(File.join(@cache.path, @asset), 'w') do |f|
+              f.write(s)
+            end
+          end
+        end
+
+        def do_xpath_removes
+          if !@remove.empty?
+            doc = Hpricot(open(File.join(@cache.path, @asset)), :xhtml_strict => true)
+            @remove.each do |selector|
+              puts "Removing:\t#{selector}"
+              doc.search(selector).remove
+            end
+            # Save fixed document
+            File.open(File.join(@cache.path, @asset), 'w') do |f|
+              f << doc.to_html
+            end
+          end
+        end
+        
+        def do_fixups
+          if @fixup
+            # Open and attempt to fix to be more XHTML-ish
+            doc = Hpricot(open(File.join(@cache.path, @asset)), :xhtml_strict => true)
+            doctype_missing = IO.read(File.join(@cache.path, @asset)) !~ /\s*<!DOCTYPE/i
+            File.open(File.join(@cache.path, @asset), 'w') do |f|
+              # Add doctype if missing
+              if doctype_missing
+                f.puts '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">'
+              end
+              # Save fixed document
+              f << doc.to_html
+            end
+          end
+        end
+        
         UNTITLED = 'Untitled'
         
         def parse_title
           el = @doc.at(@selectors[:title])
           if el
             @title = el.inner_text.gsub(/[\r\n]/, '').gsub(/\s+/, ' ')
-            puts @title
+            puts "Title:\t\t\"#{@title}\""
           else
             @title = UNTITLED
             STDERR.puts "** Could not parse document title, using '#{@title}'"
@@ -101,7 +147,7 @@ module Repub
           el = @doc.at(@selectors[:toc])
           if el
             @toc = parse_toc_section(el)
-            puts "#{@toc.size} TOC items"
+            puts "TOC:\t\t#{@toc.size} top-level items "
           else
             @toc = []
             STDERR.puts "** Could not parse document table of contents"
