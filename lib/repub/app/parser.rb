@@ -37,7 +37,7 @@ module Repub
         def parse(cache)
           raise ParserException, "No HTML document found" if
             cache.assets[:documents].empty?
-          raise ParserException, "More than HTML document found, this is not supported (yet)" if
+          raise ParserException, "More than one HTML document found, this is not supported (yet)" if
             cache.assets[:documents].size > 1
           
           @cache = cache
