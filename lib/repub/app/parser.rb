@@ -43,8 +43,6 @@ module Repub
           @cache = cache
           @asset = @cache.assets[:documents][0]
 
-          do_rxes if @rx
-          do_xpath_removes if @remove
           do_fixups if @fixup
           @doc = Hpricot(open(File.join(@cache.path, @asset)))
           
@@ -52,6 +50,10 @@ module Repub
           parse_title
           parse_title_html
           parse_toc
+          
+          do_rxes if @rx
+          do_xpath_removes if @remove
+          
           self
         end
         
