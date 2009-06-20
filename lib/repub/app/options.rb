@@ -14,13 +14,16 @@ module Repub
           :helper         => 'wget',
           :metadata       => {},
           :output_path    => Dir.getwd,
+          :profile        => 'default',
           :selectors      => Parser::Selectors,
           :url            => nil,
           :verbosity      => 0
         }
-
+        
         # Load default profile
-        load_profile
+        if load_profile(options[:profile]).empty?
+          write_profile(options[:profile])
+        end
         
         # Parse command line
         parser = OptionParser.new do |opts|
@@ -71,11 +74,11 @@ module Repub
 
           opts.on("-w", "--write-profile NAME", String,
             "Save given options for later reuse as profile NAME."
-          ) { |value| write_profile(value) }
+          ) { |value| options[:profile] = value; write_profile(value) }
 
           opts.on("-l", "--load-profile NAME", String,
             "Load options from saved profile NAME."
-          ) { |value| load_profile(value) }
+          ) { |value| options[:profile] = value; load_profile(value) }
 
           opts.on("-W", "--write-default",
             "Save given options for later reuse as default profile."
@@ -129,10 +132,8 @@ module Repub
       def help(opts)
         puts opts
         puts
-        puts "Current selectors:"
-        options[:selectors].keys.map(&:to_s).sort.map do |k|
-          printf("    %-33s%s\n", k, options[:selectors][k.to_sym]) 
-        end
+        puts "Current profile (#{options[:profile]}):"
+        dump_profile(options[:profile])
         puts
       end
     
