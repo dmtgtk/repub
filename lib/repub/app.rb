@@ -3,6 +3,7 @@ require 'repub/app/profile'
 require 'repub/app/fetcher'
 require 'repub/app/parser'
 require 'repub/app/writer'
+require 'repub/app/utility'
 
 module Repub
   class App

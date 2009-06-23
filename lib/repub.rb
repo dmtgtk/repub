@@ -43,14 +43,5 @@ module Repub
   
 end
 
-#
-# TODO 
-#
-class Object
-  def if_blank(value)
-    self.nil? || self.empty? ? value : self
-  end
-end
-
 $:.unshift Repub.libpath
 #Repub.require_all_libs_relative_to(__FILE__)
