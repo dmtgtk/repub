@@ -1,5 +1,6 @@
 require 'repub/app/options'
 require 'repub/app/profile'
+require 'repub/app/logger'
 require 'repub/app/fetcher'
 require 'repub/app/parser'
 require 'repub/app/writer'
