@@ -3,10 +3,7 @@ module Repub
     module Logger
 
       def log
-        if @log.nil?
-          @log = Helper.new(options[:verbosity])
-        end
-        @log  
+        @log || @log = Helper.new(options[:verbosity])
       end
       
       class Helper
