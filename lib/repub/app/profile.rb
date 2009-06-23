@@ -4,7 +4,7 @@ module Repub
   class App
     module Profile
 
-      PROFILE_KEYS = %w[css encoding fixup helper metadata remove rx selectors].map(&:to_sym)
+      PROFILE_KEYS = %w[css encoding fixup helper metadata remove rx selectors].map {|k| k.to_sym}
       
       def load_profile(name = nil)
         name ||= 'default'
@@ -28,18 +28,18 @@ module Repub
         name ||= 'default'
         profile = Profile.new
         if p = profile[name]
-          keys = p.keys.map(&:to_s).sort.map(&:to_sym)
+          keys = p.keys.map{|k| k.to_s }.sort.map{|k| k.to_sym }
           keys.each do |k|
             v = p[k]
             next if v.nil? || (v.respond_to?(:empty?) && v.empty?)
             case k
             when :selectors
               printf("%4s%-6s\n", '', k)
-              selector_keys = v.keys.map(&:to_s).sort.map(&:to_sym)
+              selector_keys = v.keys.map{|k| k.to_s }.sort.map{|k| k.to_sym }
               selector_keys.each { |sk| printf("%8s%-12s %s\n", '', sk, v[sk]) }
             when :metadata
               printf("%4s%-6s\n", '', k)
-              metadata_keys = v.keys.map(&:to_s).sort.map(&:to_sym)
+              metadata_keys = v.keys.map{|k| k.to_s }.sort.map{|k| k.to_sym }
               metadata_keys.each { |mk| printf("%8s%-12s %s\n", '', mk, v[mk]) }
             else
               printf("%4s%-16s %s\n", '', k, v)

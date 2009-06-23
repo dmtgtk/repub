@@ -115,7 +115,7 @@ module Repub
             if el.children.empty?
               title_text = el.inner_text
             else
-              title_text =  el.children.map(&:inner_text).join(' ')
+              title_text =  el.children.map{|c| c.inner_text }.join(' ')
             end
             @title = title_text.gsub(/[\r\n]/, '').gsub(/\s+/, ' ')
             puts "Title:\t\t\"#{@title}\""
