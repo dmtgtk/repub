@@ -1,1 +1,2 @@
-* add support for rx cleaning/modifying source doc
+√ add support for rx cleaning/modifying source doc
+  add quiet/verbose support

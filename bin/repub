@@ -6,6 +6,6 @@ require File.expand_path(
 require 'repub/app'
 
 #args = ['--version', '-s', 'http://www.berzinarchives.com/web/x/prn/p.html_1614431902.html']
-ARGV << 'http://www.berzinarchives.com/web/x/prn/p.html_1614431902.html'
+#ARGV << 'http://www.berzinarchives.com/web/x/prn/p.html_1614431902.html'
 
 Repub::App.run ARGV
