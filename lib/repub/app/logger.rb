@@ -6,18 +6,17 @@ module Repub
       #   -1 : quiet (nothing except errors)
       #    0 : normal
       #    1 : verbose (include debug and info)
-      LOGGER_QUIET = -1
-      LOGGER_NORMAL = 0
-      LOGGER_VERBOSE = 1
+      LOGGER_QUIET = 0
+      LOGGER_NORMAL = 1
+      LOGGER_VERBOSE = 2
 
       def log(stdout = STDOUT, stderr = STDERR)
-        if @log.nil?
-          @log = Helper.new(options[:verbosity], stdout, stderr)
-        end
-        @log  
+        @log ||= Helper.new(options[:verbosity], stdout, stderr)
       end
-    
+      
       class Helper
+        
+        attr_accessor :level
         
         # Create a new log instance
         # Level sets verbosity level:
@@ -28,7 +27,7 @@ module Repub
         end
         
         def debug(msg)
-          @stdout.puts(msg) if @level < LOGGER_NORMAL
+          @stdout.puts(msg) if @level >= LOGGER_VERBOSE
         end
         
         def info(msg)
