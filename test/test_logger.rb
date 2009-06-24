@@ -1,4 +1,4 @@
-require "test/unit"
+require 'test/unit'
 require "repub"
 require 'repub/app'
 
@@ -25,6 +25,8 @@ class TestRepub < Test::Unit::TestCase
     @log = nil
   end
   
+  # Long comment text
+  #
   def test_create
     assert_not_nil(log)
   end
