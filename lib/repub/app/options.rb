@@ -20,7 +20,7 @@ module Repub
           :rx             => [],
           :selectors      => Parser::Selectors,
           :url            => nil,
-          :verbosity      => 0
+          :verbosity      => LOGGER_NORMAL,
         }
         
         # Load default profile
