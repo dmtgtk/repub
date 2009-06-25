@@ -1,3 +1,5 @@
+require 'singleton'
+
 module Repub
   class App
     module Logger
@@ -10,19 +12,16 @@ module Repub
       LOGGER_NORMAL = 1
       LOGGER_VERBOSE = 2
 
-      def Logger(verbosity = LOGGER_NORMAL, stdout = STDOUT, stderr = STDERR)
-        @logger ||= Helper.new(verbosity, stdout, stderr)
+      def log
+        Helper.instance
       end
       
-      attr_reader :logger
-
       class Helper
+        include Singleton
         
         attr_accessor :level
         
-        # Create a new log instance
-        # Level sets verbosity level:
-        def initialize(level = LOGGER_NORMAL, stdout = STDOUT, stderr = STDERR)
+        def initialize(level = App.instance.options[:verbosity], stdout = STDOUT, stderr = STDERR)
           @level = level
           @stdout = stdout
           @stderr = stderr

@@ -21,6 +21,8 @@ module Repub
       }
       
       class Helper
+        include Logger
+        
         attr_reader :cache
         attr_reader :uid
         attr_reader :title
@@ -40,6 +42,7 @@ module Repub
           
           @cache = cache
           @asset = @cache.assets[:documents][0]
+          log.debug "-- Parsing #{@asset}"
           @doc = Hpricot(open(File.join(@cache.path, @asset)), :xhtml_strict => @fixup)
           
           @uid = @cache.name
@@ -55,6 +58,7 @@ module Repub
         UNTITLED = 'Untitled'
         
         def parse_title
+          log.debug "-- Looking for title with #{@selectors[:title]}"
           el = @doc.at(@selectors[:title])
           if el
             if el.children.empty?
@@ -66,11 +70,12 @@ module Repub
             puts "Title:\t\t\"#{@title}\""
           else
             @title = UNTITLED
-            STDERR.puts "** Could not parse document title, using '#{@title}'"
+            log.warn "** Could not parse document title, using '#{@title}'"
           end
         end
         
         def parse_title_html
+          log.debug "-- Looking for html title with #{@selectors[:title]}"
           el = @doc.at(@selectors[:title])
           @title_html = el ? el.inner_html.gsub(/[\r\n]/, '') : UNTITLED
         end
@@ -96,31 +101,32 @@ module Repub
         end
         
         def parse_toc
+          log.debug "-- Looking for TOC with #{@selectors[:toc]}"
           el = @doc.at(@selectors[:toc])
           if el
             @toc = parse_toc_section(el)
-            puts "TOC:\t\t#{@toc.size} top-level items "
+            log.info "TOC:\t\t#{@toc.size} top-level items "
           else
             @toc = []
-            STDERR.puts "** Could not parse document table of contents"
+            log.warn "** Could not parse document table of contents"
           end
         end
         
         def parse_toc_section(section)
           toc = []
+          log.debug "-- Looking for TOC items with #{@selectors[:toc_item]}"
           section.search(@selectors[:toc_item]).each do |item|
-            #puts "=== Item ==="
             a = item.at('a')
             next if a.nil?
             href = a['href']
             next if href.nil?
             title = a.inner_text
             subitems = nil
-            #p "#{title}"
+            log.debug "-- Found item: #{title}"
             item.search(@selectors[:toc_section]).each do |subsection|
-              #puts '--- Section >>>'
+              log.debug "-- Found section with #{@selectors[:toc_section]} >>>"
               subitems = parse_toc_section(subsection)
-              #puts '<<<'
+              log.debug '-- <<<'
             end
             toc << TocItem.new(title, href, subitems, @asset)
           end

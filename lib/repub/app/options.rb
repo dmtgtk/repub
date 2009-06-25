@@ -124,12 +124,14 @@ module Repub
           ) { |value| options[:css] = File.expand_path(value) }
 
           opts.on("-X", "--remove SELECTOR", String,
-            "Remove source element using XPath or CSS selector."
-          ) { |value| options[:remove] << value }
+            "Remove source element using XPath or CSS selector.",
+            "Use -X- to ignore stored profile."
+          ) { |value| value == '-' ? options[:remove] = [] : options[:remove] << value }
           
           opts.on("-R", "--rx /PATTERN/REPLACEMENT/", String,
-            "Edit raw source HTML using regular expressions."
-          ) { |value| options[:rx] << value }
+            "Edit source HTML using regular expressions.",
+            "Use -R- to ignore stored profile."
+          ) { |value| value == '-' ? options[:rx] = [] : options[:rx] << value }
 
           opts.on("-B", "--browse",
             "After processing, open resulting HTML in default browser."

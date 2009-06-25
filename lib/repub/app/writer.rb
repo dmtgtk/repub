@@ -22,7 +22,6 @@ module Repub
         
         def initialize(options)
           @options = options
-          Logger(@options[:verbosity])
         end
         
         def write(parser)

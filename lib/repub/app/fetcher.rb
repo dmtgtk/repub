@@ -12,7 +12,7 @@ module Repub
       class FetcherException < RuntimeError; end
 
       def fetch
-        Helper.new(options[:helper]).fetch(options[:url])
+        Helper.new(options).fetch
       end
     
       AssetTypes = {
@@ -22,24 +22,29 @@ module Repub
       }
   
       class Helper
+        include Logger
+        
         Downloaders = {
           :wget     => { :cmd => 'wget', :options => '-nv -E -H -k -p -nH -nd' },
           :httrack  => { :cmd => 'httrack', :options => '-gB -r2 +*.css +*.jpg -*.xml -*.html' }
         }
         
-        def initialize(name)
-          @downloader_path, @downloader_options = ENV['REPUB_HELPER'], ENV['REPUB_downloader_options']
+        def initialize(options)
+          @options = options
+          @downloader_path, @downloader_options = ENV['REPUB_DOWNLOADER'], ENV['REPUB_DOWNLOADER_OPTIONS']
           begin
-            downloader = Downloaders[name.to_sym] rescue Downloaders[:wget]
+            downloader = Downloaders[@options[:helper].to_sym] rescue Downloaders[:wget]
+            log.debug "-- Using #{downloader[:cmd]} #{downloader[:options]}"
             @downloader_path ||= which(downloader[:cmd])
             @downloader_options ||= downloader[:options]
           rescue RuntimeError
-            raise FetcherException, "unknown helper '#{name}'"
+            raise FetcherException, "unknown helper '#{@options[:helper]}'"
           end
         end
         
-        def fetch(url)
-          raise FetcherException, "empty URL" if url.nil? || url.empty?
+        def fetch
+          url = @options[:url]
+          raise FetcherException, "empty URL" if !url || url.empty?
           begin
             URI.parse(url)
           rescue
@@ -47,6 +52,7 @@ module Repub
           end
           cmd = "#{@downloader_path} #{@downloader_options} #{url}"
           Cache.for_url(url) do |cache|
+            log.debug "-- Downloading into #{cache.path}"
             unless system(cmd) && !cache.empty?
               raise FetcherException, "Fetch failed."
             end
@@ -65,6 +71,8 @@ module Repub
       end
 
       class Cache
+        include Logger
+        
         def self.root
           return File.join(App.data_path, 'cache')
         end
@@ -98,6 +106,8 @@ module Repub
               FileUtils.rm_r(@path)
               raise
             end
+          else
+            log.debug "-- Already cached in #{@path}"
           end
           # do post-download tasks
           if File.exist?(@path)
@@ -113,11 +123,16 @@ module Repub
               end
               # detect encoding and convert to utf-8 if needed
               @assets[:documents].each do |doc|
+                log.debug "-- Detecting encoding for #{doc}"
                 s = IO.read(doc)
+                raise FetcherException, "empty document" unless s
                 encoding = UniversalDetector::chardet(s)['encoding']
                 if encoding.downcase != 'utf-8'
+                  log.debug "-- Looks like it's #{encoding}, will convert to UTF-8"
                   s = Iconv.conv('utf-8', encoding, s)
                   File.open(doc, 'w') { |f| f.write(s) }
+                else
+                  log.debug "-- Looks like it's UTF-8, no conversion needed"
                 end
               end
             end

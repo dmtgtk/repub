@@ -8,4 +8,4 @@ require 'repub/app'
 # http://www.berzinarchives.com/web/x/prn/p.html_1614431902.html
 # http://www.gutenberg.org/dirs/etext99/advsh12h.htm
 
-Repub::App.run ARGV
+Repub::App.instance.run ARGV
