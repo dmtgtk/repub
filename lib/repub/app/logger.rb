@@ -10,10 +10,12 @@ module Repub
       LOGGER_NORMAL = 1
       LOGGER_VERBOSE = 2
 
-      def log(stdout = STDOUT, stderr = STDERR)
-        @log ||= Helper.new(options[:verbosity], stdout, stderr)
+      def Logger(verbosity = LOGGER_NORMAL, stdout = STDOUT, stderr = STDERR)
+        @logger ||= Helper.new(verbosity, stdout, stderr)
       end
       
+      attr_reader :logger
+
       class Helper
         
         attr_accessor :level

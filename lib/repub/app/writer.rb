@@ -15,16 +15,14 @@ module Repub
       end
   
       class Helper
-        include Epub
+        include Epub, Logger
         
         attr_reader :output_path
+        attr_reader :asset_path
         
         def initialize(options)
           @options = options
-          @css = options[:css]
-          @fixup = options[:fixup]
-          @remove = options[:remove]
-          @rx = options[:rx]
+          Logger(@options[:verbosity])
         end
         
         def write(parser)
@@ -56,8 +54,9 @@ module Repub
           @output_path = @output_path +  '.epub'
           
           # Write EPUB
-          Dir.mktmpdir(App::name) do |tmp|
-            FileUtils.chdir(tmp) do
+          tmpdir = Dir.mktmpdir(App::name)
+          begin
+            FileUtils.chdir(tmpdir) do
               copy_and_process_assets
               write_meta_inf
               write_mime_type
@@ -65,6 +64,8 @@ module Repub
               write_toc
               make_epub
             end
+          ensure
+            FileUtils.remove_entry_secure(tmpdir) unless @options[:browse]
           end
           self
         end
@@ -76,14 +77,13 @@ module Repub
         def postprocess_file(asset)
           source = IO.read(asset)
           # Do rx substitutions
-          if @rx && !@rx.empty?
-            @rx.each do |rx|
+          if @options[:rx] && !@options[:rx].empty?
+            @options[:rx].each do |rx|
               rx.strip!
               delimiter = rx[0, 1]
               rx = rx.gsub(/\\#{delimiter}/, "\n")
               ra = rx.split(/#{delimiter}/).reject {|e| e.empty? }.each {|e| e.gsub!(/\n/, "#{delimiter}")}
-              p ra
-              raise ParserException, "Invalid regular expression" if ra.empty? || ra[0].nil?
+              raise ParserException, "Invalid regular expression" if ra.empty? || ra[0].nil? || ra.size > 2
               pattern = ra[0]
               replacement = ra[1] || ''
               puts "Replacing:\t/#{pattern}/ => \"#{replacement}\""
@@ -103,16 +103,16 @@ module Repub
         
         def postprocess_doc(asset)
           # Do Hpricot fixes if fixup is ON
-          doc = Hpricot(open(asset), :xhtml_strict => @fixup)
+          doc = Hpricot(open(asset), :xhtml_strict => @options[:fixup])
           # Substitute custom stylesheet
-          if (@css && !@css.empty?)
+          if (@options[:css] && !@options[:css].empty?)
             doc.search('//link[@rel="stylesheet"]') do |link|
-              link[:href] = File.basename(@css)
+              link[:href] = File.basename(@options[:css])
             end
           end
           # Remove elements
-          if @remove && !@remove.empty?
-            @remove.each do |selector|
+          if @options[:remove] && !@options[:remove].empty?
+            @options[:remove].each do |selector|
               puts "Removing:\t#{selector}"
               doc.search(selector).remove
             end
@@ -132,9 +132,10 @@ module Repub
             postprocess_file(asset)
             postprocess_doc(asset)
             @content.add_document(asset)
+            @asset_path = File.expand_path(asset)
           end
           # Copy css
-          if @css.nil? || @css.empty?
+          if @options[:css].nil? || @options[:css].empty?
             # No custom css, copy one from assets
             @parser.cache.assets[:stylesheets].each do |css|
               FileUtils.cp(File.join(@parser.cache.path, css), '.')
@@ -142,8 +143,8 @@ module Repub
             end
           else
             # Copy custom css
-            FileUtils.cp(@css, '.')
-            @content.add_stylesheet(File.basename(@css))
+            FileUtils.cp(@options[:css], '.')
+            @content.add_stylesheet(File.basename(@options[:css]))
           end
           # Copy images
           @parser.cache.assets[:images].each do |image|

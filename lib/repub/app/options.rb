@@ -9,6 +9,7 @@ module Repub
       def parse_options(args)
         # Default options
         @options = {
+          :browse         => false,
           :css            => nil,
           :encoding       => nil,
           :fixup          => true,
@@ -71,11 +72,11 @@ module Repub
 
           opts.on("-v", "--verbose",
             "Turn on verbose output."
-          ) { options[:verbosity] = 1 }
+          ) { options[:verbosity] = Repub::App::Logger::LOGGER_VERBOSE }
 
           opts.on("-q", "--quiet",
             "Turn off any output except errors."
-          ) { options[:verbosity] = -1 }
+          ) { options[:verbosity] = Repub::App::Logger::LOGGER_QUIET }
 
           opts.on("-V", "--version",
             "Show version."
@@ -129,6 +130,10 @@ module Repub
           opts.on("-R", "--rx /PATTERN/REPLACEMENT/", String,
             "Edit raw source HTML using regular expressions."
           ) { |value| options[:rx] << value }
+
+          opts.on("-B", "--browse",
+            "After processing, open resulting HTML in default browser."
+          ) { |value| options[:browse] = true }
 
         end
 

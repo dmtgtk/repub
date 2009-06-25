@@ -1,11 +1,11 @@
-#!/usr/bin/env ruby -w
+#!/usr/bin/env ruby
 
 require File.expand_path(
     File.join(File.dirname(__FILE__), %w[.. lib repub]))
 
 require 'repub/app'
 
-#args = ['--version', '-s', 'http://www.berzinarchives.com/web/x/prn/p.html_1614431902.html']
-#ARGV << 'http://www.berzinarchives.com/web/x/prn/p.html_1614431902.html'
+# http://www.berzinarchives.com/web/x/prn/p.html_1614431902.html
+# http://www.gutenberg.org/dirs/etext99/advsh12h.htm
 
 Repub::App.run ARGV
