@@ -37,6 +37,12 @@ module Repub
               printf("%4s%-6s\n", '', k)
               selector_keys = v.keys.map{|k| k.to_s }.sort.map{|k| k.to_sym }
               selector_keys.each { |sk| printf("%8s%-12s %s\n", '', sk, v[sk]) }
+            when :remove
+              printf("%4s%-6s\n", '', k)
+              v.each { |rk| printf("%20s %s\n", '', rk) }
+            when :rx
+              printf("%4s%-6s\n", '', k)
+              v.each { |rk| printf("%20s %s\n", '', rk) }
             when :metadata
               printf("%4s%-6s\n", '', k)
               metadata_keys = v.keys.map{|k| k.to_s }.sort.map{|k| k.to_sym }
