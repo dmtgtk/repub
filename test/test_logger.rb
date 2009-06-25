@@ -15,6 +15,11 @@ class TestRepub < Test::Unit::TestCase
     def puts(value)
       @str << value.to_s
     end
+    def changed
+      klone = self.clone
+      yield
+      klone.to_s != self.to_s
+    end
   end
   
   def setup
@@ -25,16 +30,10 @@ class TestRepub < Test::Unit::TestCase
     @err = FakeStringStream.new
   end
   
-  def changed(stream, &blk)
-    klone = stream.clone
-    yield
-    klone.to_s != stream.to_s
-  end
-  
-  def assert_out(&blk);    assert  changed(@out, &blk);  end
-  def assert_no_out(&blk); assert !changed(@out, &blk);  end
-  def assert_err(&blk);    assert  changed(@err, &blk);  end
-  def assert_no_err(&blk); assert !changed(@err, &blk);  end
+  def assert_out(&blk);    assert  @out.changed(&blk);  end
+  def assert_no_out(&blk); assert !@out.changed(&blk);  end
+  def assert_err(&blk);    assert  @err.changed(&blk);  end
+  def assert_no_err(&blk); assert !@err.changed(&blk);  end
   
   def test_create
     assert_not_nil(log)
