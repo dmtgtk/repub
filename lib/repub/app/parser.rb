@@ -62,7 +62,7 @@ module Repub
             else
               title_text =  el.children.map{|c| c.inner_text }.join(' ')
             end
-            @title = title_text.gsub(/[\r\n]/, '').gsub(/\s+/, ' ')
+            @title = title_text.gsub(/[\r\n]/, '').gsub(/\s+/, ' ').strip
             puts "Title:\t\t\"#{@title}\""
           else
             @title = UNTITLED
