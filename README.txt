@@ -7,16 +7,21 @@ RePub is a simple HTML to ePub converter.
 Few samples to get started: (TODO real description)
 
 * Project Gutenberg's THE ADVENTURES OF SHERLOCK HOLMES
-repub -x 'title:body/h1' -x 'toc:body//table' 'toc_item://tr' -X 'body/pre,body//hr,body/h1,body/h2' http://www.gutenberg.org/dirs/etext99/advsh12h.htm
+repub -x 'title://div.book//h1' -x 'toc:body//table' -x 'toc_item://tr' \
+    -X 'body/pre,body//hr,body/h1,body/h2' \
+    http://www.gutenberg.org/dirs/etext99/advsh12h.htm
 
 * Project Gutenberg's ALICE'S ADVENTURES IN WONDERLAND
-repub -x 'title:body/h1' -x 'toc:body//table' -x 'toc_item://tr' -X 'body/pre,body//hr,body/h4' http://www.gutenberg.org/files/11/11-h/11-h.htm
+repub -x 'title:body/h1' -x 'toc:body//table' -x 'toc_item://tr' \
+    -X 'body/pre,body//hr,body/h4' \
+    http://www.gutenberg.org/files/11/11-h/11-h.htm
 
 * The Gelug-Kagyu Tradition of Mahamudra from Berzin Archives
 repub http://www.berzinarchives.com/web/x/prn/p.html_680632258.html
 
 * Git User's Manual
-repub -x 'title://h1' -x 'toc://div.toc/dl' -x 'toc_item:/dt' http://www.kernel.org/pub/software/scm/git/docs/user-manual.html
+repub -x 'title://h1' -x 'toc://div.toc/dl' -x 'toc_item:/dt' \
+    http://www.kernel.org/pub/software/scm/git/docs/user-manual.html
 
 == SYNOPSIS:
 
