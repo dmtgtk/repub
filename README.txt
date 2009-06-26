@@ -13,8 +13,8 @@ RePub is a simple HTML to ePub convertor.
 
 == REQUIREMENTS:
 
-    builder
-    hpricot
+    wget or httrack
+    zip (Info-ZIP)
 
 == INSTALL:
 
@@ -24,7 +24,7 @@ RePub is a simple HTML to ePub convertor.
 
 The MIT License
 
-Copyright (c) <year> <copyright holders>
+Copyright (c) 2009 Invisible Llama
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
