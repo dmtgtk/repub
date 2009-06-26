@@ -43,7 +43,7 @@ module Repub
           @cache = cache
           @asset = @cache.assets[:documents][0]
           log.debug "-- Parsing #{@asset}"
-          @doc = Hpricot(open(File.join(@cache.path, @asset)), :xhtml_strict => @fixup)
+          @doc = Hpricot(open(File.join(@cache.path, @asset)), @fixup)
           
           @uid = @cache.name
           parse_title
@@ -116,18 +116,11 @@ module Repub
           toc = []
           log.debug "-- Looking for TOC items with #{@selectors[:toc_item]}"
           section.search(@selectors[:toc_item]).each do |item|
-            a = item.at('a')
+            a = item.name == 'a' ? item : item.at('a')
             next if a.nil?
             href = a['href']
             next if href.nil?
-            
-            #title = a.inner_text
-            if el.children.empty?
-              title_text = el.inner_text
-            else
-              title_text =  el.children.map{|c| c.inner_text }.join(' ')
-            end
-
+            title = item.inner_text.gsub(/\s+/, ' ').strip
             subitems = nil
             log.debug "-- Found item: #{title}"
             item.search(@selectors[:toc_section]).each do |subsection|
