@@ -8,7 +8,7 @@ module Repub
       class ParserException < RuntimeError; end
       
       def parse(cache)
-        Helper.new(options).parse(cache)
+        Parser.new(options).parse(cache)
       end
   
       # Default hpricot selectors
@@ -20,7 +20,7 @@ module Repub
         :toc_section  => '/ul'
       }
       
-      class Helper
+      class Parser
         include Logger
         
         attr_reader :cache
@@ -67,7 +67,7 @@ module Repub
               title_text =  el.children.map{|c| c.inner_text }.join(' ')
             end
             @title = title_text.gsub(/[\r\n]/, '').gsub(/\s+/, ' ').strip
-            puts "Title:\t\t\"#{@title}\""
+            log.info "Found title \"#{@title}\""
           else
             @title = UNTITLED
             log.warn "** Could not parse document title, using '#{@title}'"
@@ -105,7 +105,7 @@ module Repub
           el = @doc.at(@selectors[:toc])
           if el
             @toc = parse_toc_section(el)
-            log.info "TOC:\t\t#{@toc.size} top-level items "
+            log.info "Found TOC with #{@toc.size} top-level items"
           else
             @toc = []
             log.warn "** Could not parse document table of contents"
@@ -120,7 +120,14 @@ module Repub
             next if a.nil?
             href = a['href']
             next if href.nil?
-            title = a.inner_text
+            
+            #title = a.inner_text
+            if el.children.empty?
+              title_text = el.inner_text
+            else
+              title_text =  el.children.map{|c| c.inner_text }.join(' ')
+            end
+
             subitems = nil
             log.debug "-- Found item: #{title}"
             item.search(@selectors[:toc_section]).each do |subsection|

@@ -4,29 +4,23 @@ module Repub
   class App
     module Logger
 
-      # Logging verbosity:
-      #   -1 : quiet (nothing except errors)
-      #    0 : normal
-      #    1 : verbose (include debug and info)
-      LOGGER_QUIET = 0
-      LOGGER_NORMAL = 1
-      LOGGER_VERBOSE = 2
+      # Logging verbosity
+      #
+      LOGGER_QUIET = 0      # nothing except errors
+      LOGGER_NORMAL = 1     # info and above
+      LOGGER_VERBOSE = 2    # everything, including debuging noise
 
       def log
-        Helper.instance
+        Logger.instance
       end
       
-      class Helper
+      class Logger
         include Singleton
         
         attr_accessor :level
-        
-        def initialize(level = App.instance.options[:verbosity], stdout = STDOUT, stderr = STDERR)
-          @level = level
-          @stdout = stdout
-          @stderr = stderr
-        end
-        
+        attr_accessor :stdout
+        attr_accessor :stderr
+
         def debug(msg)
           @stdout.puts(msg) if @level >= LOGGER_VERBOSE
         end
@@ -43,6 +37,13 @@ module Repub
         def fatal(msg)
           error(msg)
           exit 1
+        end
+        
+        private
+        def initialize
+          @level = LOGGER_NORMAL
+          @stdout = STDOUT
+          @stderr = STDERR
         end
       end
 

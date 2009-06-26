@@ -1,3 +1,4 @@
+require 'tmpdir'
 
 # Convenience method to avoid long ifs with nil? and empty?
 # If receiver is nil or empty? is _true_, returns _value_

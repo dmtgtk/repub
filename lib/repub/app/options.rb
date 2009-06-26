@@ -7,9 +7,10 @@ module Repub
       attr_reader :options
 
       def parse_options(args)
+
         # Default options
         @options = {
-          :browse         => false,
+          :browser        => false,
           :css            => nil,
           :encoding       => nil,
           :fixup          => true,
@@ -135,7 +136,7 @@ module Repub
 
           opts.on("-B", "--browse",
             "After processing, open resulting HTML in default browser."
-          ) { |value| options[:browse] = true }
+          ) { |value| options[:browser] = true }
 
         end
 

@@ -1,20 +1,20 @@
 require 'singleton'
 require 'rubygems'
 require 'launchy'
+require 'repub/app/utility'
 require 'repub/app/options'
 require 'repub/app/profile'
 require 'repub/app/logger'
 require 'repub/app/fetcher'
 require 'repub/app/parser'
-require 'repub/app/writer'
-require 'repub/app/utility'
+require 'repub/app/builder'
 
 module Repub
   class App
     include Singleton
     
     # Mix-in actual functionality
-    include Options, Profile, Fetcher, Parser, Writer, Logger
+    include Options, Profile, Fetcher, Parser, Builder, Logger
 
     def self.name
       File.basename($0)
@@ -27,11 +27,12 @@ module Repub
     def run(args)
       parse_options(args)
       
-      log.info "Source:\t\t#{options[:url]}"
-      res = write(parse(fetch))
-      log.info "Output:\t\t#{res.output_path}"
+      log.level = options[:verbosity]
+      log.info "Making ePub from #{options[:url]}"
+      res = build(parse(fetch))
+      log.info "Saved #{res.output_path}"
       
-      Launchy::Browser.run(res.asset_path) if options[:browse]
+      Launchy::Browser.run(res.asset_path) if options[:browser]
     
     rescue RuntimeError => ex
       log.fatal "** ERROR: #{ex.to_s}"

@@ -3,7 +3,11 @@ require 'digest/sha1'
 require 'uri'
 require 'iconv'
 require 'rubygems'
+
+# XXX: suppress warnings from chardet (until they fix them)
+$VERBOSE=false
 require 'UniversalDetector'
+$VERBOSE=true
 
 module Repub
   class App
@@ -12,7 +16,7 @@ module Repub
       class FetcherException < RuntimeError; end
 
       def fetch
-        Helper.new(options).fetch
+        Fetcher.new(options).fetch
       end
     
       AssetTypes = {
@@ -21,7 +25,7 @@ module Repub
         :images => %w[jpg jpeg png gif svg]
       }
   
-      class Helper
+      class Fetcher
         include Logger
         
         Downloaders = {
