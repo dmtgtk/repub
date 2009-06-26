@@ -19,6 +19,7 @@ require 'repub/app'
 # 
 # Git User's Manual
 # repub -x 'title://h1' -x 'toc://div.toc/dl' -x 'toc_item:/dt' http://www.kernel.org/pub/software/scm/git/docs/user-manual.html
-
+# with hierarchy
+# repub -x 'title://h1' -x 'toc://div.toc'/dl -x 'toc_item:/dt' -x 'toc_section:/dl' http://www.kernel.org/pub/software/scm/git/docs/user-manual.html
 
 Repub::App.instance.run ARGV

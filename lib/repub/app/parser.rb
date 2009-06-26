@@ -117,17 +117,26 @@ module Repub
           log.debug "-- Looking for TOC items with #{@selectors[:toc_item]}"
           section.search(@selectors[:toc_item]).each do |item|
             a = item.name == 'a' ? item : item.at('a')
-            next if a.nil?
-            href = a['href']
-            next if href.nil?
+            href = a[:href]
+            next if !a || !href
             title = item.inner_text.gsub(/\s+/, ' ').strip
-            subitems = nil
             log.debug "-- Found item: #{title}"
-            item.search(@selectors[:toc_section]).each do |subsection|
+            subitems = nil
+            # subsection inside the item element or subsection immediately after the item
+            # TODO
+            subsections = item.search(@selectors[:toc_section])
+            if subsections.empty? && !item.following_siblings.empty?
+              subsections << item.following_siblings.first.at(@selectors[:toc_section])
+            end
+            subsections.compact!
+            #p "++ #{item.search(@selectors[:toc_section])}"
+            #p "== #{subsections.size}" if subsections
+            #p subsections.size if subsections
+            subsections.each do |subsection|
               log.debug "-- Found section with #{@selectors[:toc_section]} >>>"
               subitems = parse_toc_section(subsection)
               log.debug '-- <<<'
-            end
+            end if subsections
             toc << TocItem.new(title, href, subitems, @asset)
           end
           toc

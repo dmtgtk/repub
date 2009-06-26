@@ -1,2 +1,3 @@
 √ add support for rx cleaning/modifying source doc
 √ make -q/-v actually do something
+  a elements name to id attribute translation

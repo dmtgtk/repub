@@ -120,6 +120,10 @@ module Repub
               doc.search(selector).remove
             end
           end
+          # Translate a name -> id
+          doc.search('//a[@name]') do |a|
+            a[:id] = a[:name]
+          end
           # Overwrite asset with fixed version
           File.open(asset, 'w') do |f|
             f << doc.to_html
