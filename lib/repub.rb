@@ -1,7 +1,7 @@
 module Repub
 
   # :stopdoc:
-  VERSION = '0.0.2'
+  VERSION = '0.1'
   LIBPATH = File.expand_path(File.dirname(__FILE__)) + File::SEPARATOR
   PATH = File.dirname(LIBPATH) + File::SEPARATOR
   # :startdoc:
@@ -44,4 +44,3 @@ module Repub
 end
 
 $:.unshift Repub.libpath
-#Repub.require_all_libs_relative_to(__FILE__)

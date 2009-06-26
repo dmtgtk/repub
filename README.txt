@@ -1,15 +1,60 @@
-repub
-    by <author> (<email>)
-
 == DESCRIPTION:
 
 RePub is a simple HTML to ePub converter.
 
 == FEATURES/PROBLEMS:
 
+Few samples to get started: (TODO real description)
+
+* Project Gutenberg's THE ADVENTURES OF SHERLOCK HOLMES
+repub -x 'title:body/h1' -x 'toc:body//table' 'toc_item://tr' -X 'body/pre,body//hr,body/h1,body/h2' http://www.gutenberg.org/dirs/etext99/advsh12h.htm
+
+* Project Gutenberg's ALICE'S ADVENTURES IN WONDERLAND
+repub -x 'title:body/h1' -x 'toc:body//table' -x 'toc_item://tr' -X 'body/pre,body//hr,body/h4' http://www.gutenberg.org/files/11/11-h/11-h.htm
+
+* The Gelug-Kagyu Tradition of Mahamudra from Berzin Archives
+repub http://www.berzinarchives.com/web/x/prn/p.html_680632258.html
+
+* Git User's Manual
+repub -x 'title://h1' -x 'toc://div.toc/dl' -x 'toc_item:/dt' http://www.kernel.org/pub/software/scm/git/docs/user-manual.html
 
 == SYNOPSIS:
 
+Usage: repub [options] url
+
+General options:
+  -D, --downloader NAME            Which downloader to use to get files (wget or httrack).
+                                   Default is wget.
+  -o, --output PATH                Output path for generated ePub file.
+                                   Default is /Users/dg/Projects/repub/<Parsed_Title>.epub
+  -w, --write-profile NAME         Save given options for later reuse as profile NAME.
+  -l, --load-profile NAME          Load options from saved profile NAME.
+  -W, --write-default              Save given options for later reuse as default profile.
+  -L, --list-profiles              List saved profiles.
+  -C, --cleanup                    Clean up download cache.
+  -v, --verbose                    Turn on verbose output.
+  -q, --quiet                      Turn off any output except errors.
+  -V, --version                    Show version.
+  -h, --help                       Show this help message.
+
+Parser options:
+  -x, --selector NAME:VALUE        Set parser XPath or CSS selector NAME to VALUE.
+                                   Recognized selectors are: [title toc toc_item toc_section]
+  -m, --meta NAME:VALUE            Set publication information metadata NAME to VALUE.
+                                   Valid metadata names are: [creator date description
+                                   language publisher relation rights subject title]
+  -F, --no-fixup                   Do not attempt to make document meet XHTML 1.0 Strict.
+                                   Default is to try and fix things that are broken. 
+  -e, --encoding NAME              Set source document encoding. Default is to autodetect.
+
+Post-processing options:
+  -s, --stylesheet PATH            Use custom stylesheet at PATH to add or override existing
+                                   CSS references in the source document.
+  -X, --remove SELECTOR            Remove source element using XPath or CSS selector.
+                                   Use -X- to ignore stored profile.
+  -R, --rx /PATTERN/REPLACEMENT/   Edit source HTML using regular expressions.
+                                   Use -R- to ignore stored profile.
+  -B, --browse                     After processing, open resulting HTML in default browser.
 
 == REQUIREMENTS:
 
