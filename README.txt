@@ -1,6 +1,6 @@
 == DESCRIPTION:
 
-RePub is a simple HTML to ePub converter.
+Repub is a simple HTML to ePub converter.
 
 == FEATURES/PROBLEMS:
 

@@ -94,8 +94,10 @@ module Repub
             "Set parser XPath or CSS selector NAME to VALUE.",
             "Recognized selectors are: [title toc toc_item toc_section]"
           ) do |value|
-            name, value = value.split(/:/)
-            options[:selectors][name.to_sym] = value
+            va = value.split(/^([^:]+):/)
+            p va
+            options[:selectors][va[0].to_sym] = va[1, 0].join('')
+            p options[:selectors][va[0].to_sym]
           end
 
           opts.on("-m", "--meta NAME:VALUE", String,
