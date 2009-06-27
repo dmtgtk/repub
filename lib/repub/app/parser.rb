@@ -122,15 +122,11 @@ module Repub
             title = item.inner_text.gsub(/\s+/, ' ').strip
             log.debug "-- Found item: #{title}"
             subitems = nil
-            # subsection inside the item element or subsection immediately after the item
-            # TODO
             subsections = item.search(@selectors[:toc_section])
-            if subsections.empty? && !item.following_siblings.empty?
-              subsections << item.following_siblings.first.at(@selectors[:toc_section])
-            end
-            subsections.compact!
             #p "++ #{item.search(@selectors[:toc_section])}"
             #p "== #{subsections.size}" if subsections
+            p "== #{item}" if subsections
+            p "== #{@selectors[:toc_section]} #{subsections}" if subsections
             #p subsections.size if subsections
             subsections.each do |subsection|
               log.debug "-- Found section with #{@selectors[:toc_section]} >>>"

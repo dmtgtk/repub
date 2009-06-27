@@ -3,6 +3,7 @@ require 'optparse'
 module Repub
   class App
     module Options
+      include Logger
 
       attr_reader :options
 
@@ -94,7 +95,11 @@ module Repub
             "Set parser XPath or CSS selector NAME to VALUE.",
             "Recognized selectors are: [title toc toc_item toc_section]"
           ) do |value|
-            name, value = value.split(/:/)
+            begin
+              name, value = value.match(/([^:]+):(.*)/)[1, 2]
+            rescue
+              log.fatal "ERROR: invalid argument: -x '#{value}'. See '#{App.name} --help'."
+            end
             options[:selectors][name.to_sym] = value
           end
 
@@ -103,7 +108,11 @@ module Repub
             "Valid metadata names are: [creator date description",
             "language publisher relation rights subject title]"
           ) do |value|
-            name, value = value.split(/:/)
+            begin
+              name, value = value.match(/([^:]+):(.*)/)[1, 2]
+            rescue
+              log.fatal "ERROR: invalid argument: -m '#{value}'. See '#{App.name} --help'."
+            end
             options[:metadata][name.to_sym] = value
           end
 
@@ -148,14 +157,14 @@ module Repub
         begin
           parser.parse! args
         rescue OptionParser::ParseError => ex
-          STDERR.puts "ERROR: #{ex.to_s}. See '#{App.name} --help'."
+          log.fatal "ERROR: #{ex.to_s}. See '#{App.name} --help'."
           exit 1
         end
 
         options[:url] = args.last
         if options[:url].nil? || options[:url].empty?
           help parser
-          STDERR.puts "ERROR: Please specify an URL."
+          log.fatal "ERROR: Please specify an URL."
           exit 1
         end
       end
