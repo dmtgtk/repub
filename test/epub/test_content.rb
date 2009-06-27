@@ -1,6 +1,6 @@
 require 'test/unit'
 require 'rubygems'
-require 'hpricot'
+require 'nokogiri'
 require 'repub/epub'
 
 class TestContent < Test::Unit::TestCase
@@ -8,7 +8,7 @@ class TestContent < Test::Unit::TestCase
     x = Repub::Epub::Content.new('some-name')
     s = x.to_xml
     #puts s
-    doc = Hpricot(s)
+    doc = Nokogiri::HTML(s)
   
     # manifest was created
     assert_not_nil(doc.search('manifest'))
@@ -35,7 +35,7 @@ class TestContent < Test::Unit::TestCase
     x.add_document 'glossary.html', 'glossary'
     s = x.to_xml
     #puts s
-    doc = Hpricot(s)
+    doc = Nokogiri::HTML(s)
   
     # manifest was created
     assert_not_nil(doc.search('manifest'))

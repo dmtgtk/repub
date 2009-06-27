@@ -1,5 +1,5 @@
 require 'rubygems'
-require 'hpricot'
+require 'nokogiri'
 
 module Repub
   class App
@@ -11,7 +11,7 @@ module Repub
         Parser.new(options).parse(cache)
       end
   
-      # Default hpricot selectors
+      # Default selectors
       #
       Selectors = {
         :title        => '//h1',
@@ -43,7 +43,7 @@ module Repub
           @cache = cache
           @asset = @cache.assets[:documents][0]
           log.debug "-- Parsing #{@asset}"
-          @doc = Hpricot(open(File.join(@cache.path, @asset)), @fixup)
+          @doc = Nokogiri::HTML(open(File.join(@cache.path, @asset)))
           
           @uid = @cache.name
           parse_title

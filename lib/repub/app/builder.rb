@@ -104,8 +104,11 @@ module Repub
         end
         
         def postprocess_doc(asset)
-          # Do Hpricot magic if fixup is ON
-          doc = Hpricot(open(asset), :xhtml_strict => @options[:fixup])
+          
+          # XXX !!! TODO
+          #doc = Hpricot(open(asset), :xhtml_strict => @options[:fixup])
+          #
+          
           # Substitute custom stylesheet
           if (@options[:css] && !@options[:css].empty?)
             doc.search('//link[@rel="stylesheet"]') do |link|

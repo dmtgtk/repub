@@ -25,6 +25,6 @@ PROJ.exclude = %w[tmp/ \.git/ \.DS_Store .*\.tmproj ^pkg/]
 PROJ.spec.opts << '--color'
 
 depend_on 'builder'
-depend_on 'hpricot'
+depend_on 'nokogiri'
 depend_on 'chardet'
 depend_on 'launchy'

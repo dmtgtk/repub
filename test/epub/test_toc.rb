@@ -1,6 +1,6 @@
 require 'test/unit'
 require 'rubygems'
-require 'hpricot'
+require 'nokogiri'
 require 'repub/epub'
 
 class TestToc < Test::Unit::TestCase
@@ -8,7 +8,7 @@ class TestToc < Test::Unit::TestCase
     x = Repub::Epub::Toc.new('some-name')
     s = x.to_xml
     #puts s
-    doc = Hpricot(s)
+    doc = Nokogiri::HTML(s)
     # TODO 
   end
   
@@ -23,7 +23,7 @@ class TestToc < Test::Unit::TestCase
     p12 = p1.add_nav_point('Chapter 1-2', 'chapter-1-2.html')
     s = x.to_xml
     #puts s
-    doc = Hpricot(s)
+    doc = Nokogiri::HTML(s)
     # TODO 
   end
 end
