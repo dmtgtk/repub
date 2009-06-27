@@ -124,7 +124,9 @@ module Repub
             subitems = nil
             subsections = item.search(@selectors[:toc_section])
             #p "++ #{item.search(@selectors[:toc_section])}"
-          #  p "== #{subsections}" if subsections
+            #p "== #{subsections.size}" if subsections
+            p "== #{item}" if subsections
+            p "== #{@selectors[:toc_section]} #{subsections}" if subsections
             #p subsections.size if subsections
             subsections.each do |subsection|
               log.debug "-- Found section with #{@selectors[:toc_section]} >>>"
