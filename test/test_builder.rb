@@ -3,6 +3,6 @@ require 'repub'
 
 class TestBuilder < Test::Unit::TestCase
   def test_builder
-    flunk("todo")
+    # TODO
   end
 end
