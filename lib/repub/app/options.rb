@@ -158,14 +158,12 @@ module Repub
           parser.parse! args
         rescue OptionParser::ParseError => ex
           log.fatal "ERROR: #{ex.to_s}. See '#{App.name} --help'."
-          exit 1
         end
 
         options[:url] = args.last
         if options[:url].nil? || options[:url].empty?
           help parser
           log.fatal "ERROR: Please specify an URL."
-          exit 1
         end
       end
 

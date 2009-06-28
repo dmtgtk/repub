@@ -15,9 +15,9 @@ module Repub
       #
       Selectors = {
         :title        => '//h1',
-        :toc          => '//div.toc/ul',
-        :toc_item     => '/li',
-        :toc_section  => '/ul'
+        :toc          => '//div[@class="toc"]/ul',
+        :toc_item     => './li',
+        :toc_section  => './ul'
       }
       
       class Parser
@@ -43,7 +43,7 @@ module Repub
           @cache = cache
           @asset = @cache.assets[:documents][0]
           log.debug "-- Parsing #{@asset}"
-          @doc = Nokogiri::HTML(open(File.join(@cache.path, @asset)))
+          @doc = Nokogiri::HTML.parse(open(File.join(@cache.path, @asset)), nil, 'UTF-8')
           
           @uid = @cache.name
           parse_title
@@ -64,7 +64,7 @@ module Repub
             if el.children.empty?
               title_text = el.inner_text
             else
-              title_text =  el.children.map{|c| c.inner_text }.join(' ')
+              title_text = el.children.map{|c| c.inner_text }.join(' ')
             end
             @title = title_text.gsub(/[\r\n]/, '').gsub(/\s+/, ' ').strip
             log.info "Found title \"#{@title}\""
@@ -102,7 +102,7 @@ module Repub
         
         def parse_toc
           log.debug "-- Looking for TOC with #{@selectors[:toc]}"
-          el = @doc.at(@selectors[:toc])
+          el = @doc.xpath(@selectors[:toc]).first
           if el
             @toc = parse_toc_section(el)
             log.info "Found TOC with #{@toc.size} top-level items"
@@ -115,24 +115,26 @@ module Repub
         def parse_toc_section(section)
           toc = []
           log.debug "-- Looking for TOC items with #{@selectors[:toc_item]}"
-          section.search(@selectors[:toc_item]).each do |item|
+          section.xpath(@selectors[:toc_item]).each do |item|
             a = item.name == 'a' ? item : item.at('a')
+            next if !a
             href = a[:href]
-            next if !a || !href
-            title = item.inner_text.gsub(/\s+/, ' ').strip
+            next if !href
+            if item.children.empty?
+              title = item.inner_text
+            else
+              title = item.children.map{|c| c.inner_text }.join(' ')
+            end
+            title = title.gsub(/[\r\n]/, '').gsub(/\s+/, ' ').strip
             log.debug "-- Found item: #{title}"
-            subitems = nil
-            subsections = item.search(@selectors[:toc_section])
-            #p "++ #{item.search(@selectors[:toc_section])}"
-            #p "== #{subsections.size}" if subsections
-            p "== #{item}" if subsections
-            p "== #{@selectors[:toc_section]} #{subsections}" if subsections
-            #p subsections.size if subsections
-            subsections.each do |subsection|
-              log.debug "-- Found section with #{@selectors[:toc_section]} >>>"
+            subsection = item.xpath(@selectors[:toc_section]).first
+            #p subsection
+            if subsection
+              log.debug "-- Found section with #{@selectors[:toc_section]}"
+              log.debug "-- >"
               subitems = parse_toc_section(subsection)
-              log.debug '-- <<<'
-            end if subsections
+              log.debug '-- .'
+            end
             toc << TocItem.new(title, href, subitems, @asset)
           end
           toc

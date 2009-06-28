@@ -104,14 +104,10 @@ module Repub
         end
         
         def postprocess_doc(asset)
-          
-          # XXX !!! TODO
-          #doc = Hpricot(open(asset), :xhtml_strict => @options[:fixup])
-          #
-          
-          # Substitute custom stylesheet
+          doc = Nokogiri::HTML.parse(open(asset), nil, 'UTF-8')
+          # Substitute custom CSS
           if (@options[:css] && !@options[:css].empty?)
-            doc.search('//link[@rel="stylesheet"]') do |link|
+            doc.xpath('//link[@rel="stylesheet"]') do |link|
               link[:href] = File.basename(@options[:css])
               log.debug "-- Replacing CSS refs with #{link[:href]}"
             end
@@ -119,17 +115,26 @@ module Repub
           # Remove elements
           if @options[:remove] && !@options[:remove].empty?
             @options[:remove].each do |selector|
-              log.info "Removing element(s) matching selector \"#{selector}\""
+              log.info "Removing elements matching selector \"#{selector}\""
+              #p doc.search(selector).size
+              #p doc.search(selector)
               doc.search(selector).remove
             end
           end
-          # Translate a name -> id
-          doc.search('//a[@name]') do |a|
-            a[:id] = a[:name]
-          end
-          # Overwrite asset with fixed version
+          # XXX
+          # doc.search('//a[@name and not(@id)]') do |a|
+          #   a[:id] = a[:name]
+          # end
+          # Save processed version
           File.open(asset, 'w') do |f|
-            f << doc.to_html
+            if @options[:fixup]
+              # HACK: Nokogiri seems to ignore the fact that xmlns and other attrs aleady present and adds them anyway
+              # So we just remove them here to avoid duplicates
+              doc.root.attributes.each {|name, value| doc.root.remove_attribute(name) }
+              doc.write_xhtml_to(f, :encoding => 'UTF-8')
+            else
+              doc.write_html_to(f, :encoding => 'UTF-8')
+            end
           end
         end
         

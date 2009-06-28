@@ -6,20 +6,21 @@ require File.expand_path(
 require 'repub/app'
 
 # THE ADVENTURES OF SHERLOCK HOLMES
-# repub -x 'title:body/h1' -x 'toc:body//table' 'toc_item://tr' -X 'body/pre,body//hr,body/h1,body/h2' http://www.gutenberg.org/dirs/etext99/advsh12h.htm
+#   repub -x 'title:div[@class='book']//h1' -x 'toc://table' -x 'toc_item://tr' -X '//pre' -X '//hr' -X '//body/h1' -X '//body/h2' http://www.gutenberg.org/dirs/etext99/advsh12h.htm
 #
 # ALICE'S ADVENTURES IN WONDERLAND
-# repub -x 'title:body/h1' -x 'toc:body//table' -x 'toc_item://tr' -X 'body/pre,body//hr,body/h4' http://www.gutenberg.org/files/11/11-h/11-h.htm
+#   repub -x 'title:body/h1' -x 'toc://table' -x 'toc_item://tr' -X '//pre' -X '//hr' -X '//body/h4' http://www.gutenberg.org/files/11/11-h/11-h.htm
 # 
 # The Gelug-Kagyu Tradition of Mahamudra
-# http://www.berzinarchives.com/web/x/prn/p.html_680632258.html
+#   repub http://www.berzinarchives.com/web/x/prn/p.html_680632258.html
 # 
 # Брюс Стерлинг. Схизматрица
-# repub -x 'title://h2' -x 'toc:table' -x 'toc_item://a' -X 'div,table,//hr' http://lib.ru/STERLINGB/shizmatrica.txt_with-big-pictures.html
+#   repub -x 'title://h2' -x 'toc://table' -x 'toc_item://a' -X 'div' -X 'table' -X '//hr' http://lib.ru/STERLINGB/shizmatrica.txt_with-big-pictures.html
 # 
+# Айзек Азимов. Космические течения
+#   repub -B -v -x 'title://h2' -x 'toc://table' -x 'toc_item://a' -X 'div' -X 'table' -X '//hr' http://lib.ru/FOUNDATION/currspac.txt_with-big-pictures.html
+#
 # Git User's Manual
-# repub -x 'title://h1' -x 'toc://div.toc/dl' -x 'toc_item:/dt' http://www.kernel.org/pub/software/scm/git/docs/user-manual.html
-# with hierarchy
-# repub -x 'title://h1' -x 'toc://div.toc'/dl -x 'toc_item:/dt' -x 'toc_section:/dl' http://www.kernel.org/pub/software/scm/git/docs/user-manual.html
+#   repub -x 'title://h1' -x 'toc://div[@class="toc"]/dl' -x 'toc_item:dt' -x 'toc_section:following-sibling::*[1]/dl' http://www.kernel.org/pub/software/scm/git/docs/user-manual.html
 
 Repub::App.instance.run ARGV

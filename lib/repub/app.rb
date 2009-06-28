@@ -26,7 +26,6 @@ module Repub
     
     def run(args)
       parse_options(args)
-      exit
       
       log.level = options[:verbosity]
       log.info "Making ePub from #{options[:url]}"
