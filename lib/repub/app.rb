@@ -21,7 +21,9 @@ module Repub
     end
     
     def self.data_path
-      File.join(File.expand_path('~'), '.repub')
+      data_path = File.join(File.expand_path('~'), '.repub')
+      FileUtils.mkdir_p(data_path) unless File.exist?(data_path)
+      data_path
     end
     
     def run(args)
