@@ -70,7 +70,7 @@ module Repub
             log.info "Found title \"#{@title}\""
           else
             @title = UNTITLED
-            log.warn "** Could not parse document title, using '#{@title}'"
+            log.warn "** Could not find document title, using '#{@title}'"
           end
         end
         
@@ -80,6 +80,8 @@ module Repub
           @title_html = el ? el.inner_html.gsub(/[\r\n]/, '') : UNTITLED
         end
         
+        # Helper container for TOC items
+        #
         class TocItem < Struct.new(
             :title,
             :uri,
@@ -108,7 +110,7 @@ module Repub
             log.info "Found TOC with #{@toc.size} top-level items"
           else
             @toc = []
-            log.warn "** Could not parse document table of contents"
+            log.warn "** Could not find document table of contents"
           end
         end
         
@@ -116,19 +118,23 @@ module Repub
           toc = []
           log.debug "-- Looking for TOC items with #{@selectors[:toc_item]}"
           section.xpath(@selectors[:toc_item]).each do |item|
+            # Get item's anchor and href
             a = item.name == 'a' ? item : item.at('a')
             next if !a
             href = a[:href]
             next if !href
-            if item.children.empty?
-              title = item.inner_text
+            # Is this a leaf item or node ?
+            subsection = item.xpath(@selectors[:toc_section]).first
+            if subsection
+              # Item has subsection, use anchor text for title
+              title = a.inner_text
             else
+              # Leaf item, glue inner_text from all children
               title = item.children.map{|c| c.inner_text }.join(' ')
             end
             title = title.gsub(/[\r\n]/, '').gsub(/\s+/, ' ').strip
             log.debug "-- Found item: #{title}"
-            subsection = item.xpath(@selectors[:toc_section]).first
-            #p subsection
+            # Parse sub-section
             if subsection
               log.debug "-- Found section with #{@selectors[:toc_section]}"
               log.debug "-- >"

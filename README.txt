@@ -1,27 +1,31 @@
-== DESCRIPTION:
+= Repub
 
-Repub is a simple HTML to ePub converter.
+Simple HTML to ePub converter.
 
 == FEATURES/PROBLEMS:
 
-Few samples to get started: (TODO real description)
-
-* Project Gutenberg's THE ADVENTURES OF SHERLOCK HOLMES
-repub -x 'title://div.book//h1' -x 'toc:body//table' -x 'toc_item://tr' \
-    -X 'body/pre,body//hr,body/h1,body/h2' \
-    http://www.gutenberg.org/dirs/etext99/advsh12h.htm
-
-* Project Gutenberg's ALICE'S ADVENTURES IN WONDERLAND
-repub -x 'title:body/h1' -x 'toc:body//table' -x 'toc_item://tr' \
-    -X 'body/pre,body//hr,body/h4' \
-    http://www.gutenberg.org/files/11/11-h/11-h.htm
-
-* The Gelug-Kagyu Tradition of Mahamudra from Berzin Archives
-repub http://www.berzinarchives.com/web/x/prn/p.html_680632258.html
+Few samples to get started:
 
 * Git User's Manual
-repub -x 'title://h1' -x 'toc://div.toc/dl' -x 'toc_item:/dt' \
-    http://www.kernel.org/pub/software/scm/git/docs/user-manual.html
+
+    repub -x 'title://h1' -x 'toc://div[@class="toc"]/dl' -x 'toc_item:dt' -x 'toc_section:following-sibling::*[1]/dl' \
+        http://www.kernel.org/pub/software/scm/git/docs/user-manual.html
+
+* Project Gutenberg's THE ADVENTURES OF SHERLOCK HOLMES
+
+    repub -x 'title:div[@class='book']//h1' -x 'toc://table' -x 'toc_item://tr' \
+        -X '//pre' -X '//hr' -X '//body/h1' -X '//body/h2' \
+	    http://www.gutenberg.org/dirs/etext99/advsh12h.htm
+
+* Project Gutenberg's ALICE'S ADVENTURES IN WONDERLAND
+
+    repub -x 'title:body/h1' -x 'toc://table' -x 'toc_item://tr' \
+	    -X '//pre' -X '//hr' -X '//body/h4' \
+	    http://www.gutenberg.org/files/11/11-h/11-h.htm
+
+* The Gelug-Kagyu Tradition of Mahamudra from Berzin Archives
+
+    repub http://www.berzinarchives.com/web/x/prn/p.html_680632258.html
 
 == SYNOPSIS:
 
@@ -43,7 +47,7 @@ General options:
   -h, --help                       Show this help message.
 
 Parser options:
-  -x, --selector NAME:VALUE        Set parser XPath or CSS selector NAME to VALUE.
+  -x, --selector NAME:VALUE        Set parser XPath selector NAME to VALUE.
                                    Recognized selectors are: [title toc toc_item toc_section]
   -m, --meta NAME:VALUE            Set publication information metadata NAME to VALUE.
                                    Valid metadata names are: [creator date description
@@ -55,16 +59,21 @@ Parser options:
 Post-processing options:
   -s, --stylesheet PATH            Use custom stylesheet at PATH to add or override existing
                                    CSS references in the source document.
-  -X, --remove SELECTOR            Remove source element using XPath or CSS selector.
+  -X, --remove SELECTOR            Remove source element using XPath selector.
                                    Use -X- to ignore stored profile.
   -R, --rx /PATTERN/REPLACEMENT/   Edit source HTML using regular expressions.
                                    Use -R- to ignore stored profile.
   -B, --browse                     After processing, open resulting HTML in default browser.
 
-== REQUIREMENTS:
+== DEPENDENCIES:
 
-    wget or httrack
-    zip (Info-ZIP)
+* Builder (https://rubyforge.org/projects/builder/)
+* Nokogiri (http://nokogiri.rubyforge.org/nokogiri/)
+* rchardet (https://rubyforge.org/projects/rchardet/)
+* launchy (http://copiousfreetime.rubyforge.org/launchy/)
+
+* wget or httrack
+* zip (Info-ZIP)
 
 == INSTALL:
 
@@ -72,9 +81,9 @@ Post-processing options:
 
 == LICENSE:
 
-The MIT License
+(The MIT License)
 
-Copyright (c) 2009 Invisible Llama
+Copyright (c) 2009 Invisible Llama <dg@invisiblellama.net>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -93,3 +102,5 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
+
+==

@@ -18,7 +18,7 @@ require 'repub/app'
 #   repub -x 'title://h2' -x 'toc://table' -x 'toc_item://a' -X 'div' -X 'table' -X '//hr' http://lib.ru/STERLINGB/shizmatrica.txt_with-big-pictures.html
 # 
 # Айзек Азимов. Космические течения
-#   repub -B -v -x 'title://h2' -x 'toc://table' -x 'toc_item://a' -X 'div' -X 'table' -X '//hr' http://lib.ru/FOUNDATION/currspac.txt_with-big-pictures.html
+#   repub -x 'title://h2' -x 'toc://table' -x 'toc_item://a' -X 'div' -X 'table' -X '//hr' http://lib.ru/FOUNDATION/currspac.txt_with-big-pictures.html
 #
 # Git User's Manual
 #   repub -x 'title://h1' -x 'toc://div[@class="toc"]/dl' -x 'toc_item:dt' -x 'toc_section:following-sibling::*[1]/dl' http://www.kernel.org/pub/software/scm/git/docs/user-manual.html

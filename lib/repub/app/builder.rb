@@ -97,7 +97,7 @@ module Repub
             log.debug "-- Adding missing doctype"
             source = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n" + source
           end
-          # Overwrite asset with fixed version
+          # Save processed file
           File.open(asset, 'w') do |f|
             f.write(source)
           end
@@ -121,15 +121,11 @@ module Repub
               doc.search(selector).remove
             end
           end
-          # XXX
-          # doc.search('//a[@name and not(@id)]') do |a|
-          #   a[:id] = a[:name]
-          # end
-          # Save processed version
+          # Save processed doc
           File.open(asset, 'w') do |f|
             if @options[:fixup]
-              # HACK: Nokogiri seems to ignore the fact that xmlns and other attrs aleady present and adds them anyway
-              # So we just remove them here to avoid duplicates
+              # HACK: Nokogiri seems to ignore the fact that xmlns and other attrs aleady present
+              # in html node and adds them anyway. Just remove them here to avoid duplicates.
               doc.root.attributes.each {|name, value| doc.root.remove_attribute(name) }
               doc.write_xhtml_to(f, :encoding => 'UTF-8')
             else

@@ -92,7 +92,7 @@ module Repub
           opts.separator "  Parser options:"
           
           opts.on("-x", "--selector NAME:VALUE", String,
-            "Set parser XPath or CSS selector NAME to VALUE.",
+            "Set parser XPath selector NAME to VALUE.",
             "Recognized selectors are: [title toc toc_item toc_section]"
           ) do |value|
             begin
@@ -134,7 +134,7 @@ module Repub
           ) { |value| options[:css] = File.expand_path(value) }
 
           opts.on("-X", "--remove SELECTOR", String,
-            "Remove source element using XPath or CSS selector.",
+            "Remove source element using XPath selector.",
             "Use -X- to ignore stored profile."
           ) { |value| value == '-' ? options[:remove] = [] : options[:remove] << value }
           

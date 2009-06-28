@@ -3,11 +3,7 @@ require 'digest/sha1'
 require 'uri'
 require 'iconv'
 require 'rubygems'
-
-# XXX: suppress warnings from chardet (until they fix them)
-$VERBOSE=false
-require 'UniversalDetector'
-$VERBOSE=true
+require 'rchardet'
 
 module Repub
   class App
@@ -128,9 +124,12 @@ module Repub
               # detect encoding and convert to utf-8 if needed
               @assets[:documents].each do |doc|
                 log.debug "-- Detecting encoding for #{doc}"
-                s = IO.read(doc)
+                s = File.open(doc) do |f|
+                  # Detect encoding using first 100 lines...
+                  100.times.inject('') { |s, n| s += f.gets }
+                end
                 raise FetcherException, "empty document" unless s
-                encoding = UniversalDetector::chardet(s)['encoding']
+                encoding = CharDet.detect(s)['encoding']
                 if encoding.downcase != 'utf-8'
                   log.debug "-- Looks like it's #{encoding}, will convert to UTF-8"
                   s = Iconv.conv('utf-8', encoding, s)
