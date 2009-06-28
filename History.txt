@@ -7,3 +7,7 @@
 * Switched to Nokogiri for HTML parsing
 * Better parsing for hierarchical TOCs
 * Many bug fixes
+
+== 0.3.1 / 2009-06-28
+
+* Fixed App.data_path bug

@@ -2,13 +2,13 @@
 
 Gem::Specification.new do |s|
   s.name = %q{repub}
-  s.version = "0.3.0"
+  s.version = "0.3.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Dmitri Goutnik"]
   s.date = %q{2009-06-28}
   s.default_executable = %q{repub}
-  s.description = %q{}
+  s.description = %q{Simple HTML to ePub converter.}
   s.email = %q{dg@invisiblellama.net}
   s.executables = ["repub"]
   s.extra_rdoc_files = ["History.txt", "README.txt", "SAMPLES.txt", "bin/repub"]
@@ -18,7 +18,7 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
   s.rubyforge_project = %q{repub}
   s.rubygems_version = %q{1.3.4}
-  s.summary = nil
+  s.summary = %q{Simple HTML to ePub converter}
   s.test_files = ["test/epub/test_container.rb", "test/epub/test_content.rb", "test/epub/test_toc.rb", "test/test_builder.rb", "test/test_fetcher.rb", "test/test_logger.rb", "test/test_parser.rb"]
 
   if s.respond_to? :specification_version then
