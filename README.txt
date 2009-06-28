@@ -1,4 +1,4 @@
-= Repub
+== DESCRIPTION:
 
 Simple HTML to ePub converter.
 
