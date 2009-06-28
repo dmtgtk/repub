@@ -15,7 +15,7 @@ module Repub
       #
       Selectors = {
         :title        => '//h1',
-        :toc          => '//div[@class="toc"]/ul',
+        :toc          => '//ul',
         :toc_item     => './li',
         :toc_section  => './ul'
       }
