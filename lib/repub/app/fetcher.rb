@@ -3,7 +3,11 @@ require 'digest/sha1'
 require 'uri'
 require 'iconv'
 require 'rubygems'
-require 'rchardet'
+
+old_verbose = $VERBOSE
+$VERBOSE = false
+require 'UniversalDetector'
+$VERBOSE = old_verbose
 
 module Repub
   class App
@@ -97,8 +101,9 @@ module Repub
         end
       
         def for_url(&block)
-          # if not yet cached, download stuff
-          unless File.exist?(@path)
+          # Download stuff if not yet cached
+          cached = File.exist?(@path)
+          unless cached
             FileUtils.mkdir_p(@path) 
             begin
               Dir.chdir(@path) { yield self }
@@ -107,35 +112,33 @@ module Repub
               raise
             end
           else
-            log.debug "-- Already cached in #{@path}"
+            log.info "Using cached assets"
+            log.debug "-- Cache is #{@path}"
           end
-          # do post-download tasks
-          if File.exist?(@path)
-            Dir.chdir(@path) do
-              # enumerate assets
-              @assets = {}
-              AssetTypes.each_pair do |asset_type, file_types|
-                @assets[asset_type] ||= []
-                file_types.each do |file_type|
-                  @assets[asset_type] << Dir.glob("*.#{file_type}")
-                end
-                @assets[asset_type].flatten!
+          # Do post-download tasks
+          Dir.chdir(@path) do
+            # Enumerate assets
+            @assets = {}
+            AssetTypes.each_pair do |asset_type, file_types|
+              @assets[asset_type] ||= []
+              file_types.each do |file_type|
+                @assets[asset_type] << Dir.glob("*.#{file_type}")
               end
-              # detect encoding and convert to utf-8 if needed
+              @assets[asset_type].flatten!
+            end
+            # For freshly downloaded docs, detect encoding and convert to utf-8
+            unless cached
               @assets[:documents].each do |doc|
-                log.debug "-- Detecting encoding for #{doc}"
-                s = File.open(doc) do |f|
-                  # Detect encoding using first 100 lines...
-                  100.times.inject('') { |s, n| s += f.gets }
-                end
+                log.info "Detecting encoding for #{doc}"
+                s = IO.read(doc)
                 raise FetcherException, "empty document" unless s
-                encoding = CharDet.detect(s)['encoding']
+                encoding = UniversalDetector.chardet(s)['encoding']
                 if encoding.downcase != 'utf-8'
-                  log.debug "-- Looks like it's #{encoding}, will convert to UTF-8"
-                  s = Iconv.conv('utf-8', encoding, s)
+                  log.info "Looks like #{encoding}, converting to UTF-8"
+                  s = Iconv.conv('utf-8', encoding, IO.read(doc))
                   File.open(doc, 'w') { |f| f.write(s) }
                 else
-                  log.debug "-- Looks like it's UTF-8, no conversion needed"
+                  log.info "Looks like UTF-8, no conversion needed"
                 end
               end
             end
