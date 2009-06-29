@@ -43,7 +43,7 @@ module Repub
           @cache = cache
           @asset = @cache.assets[:documents][0]
           log.debug "-- Parsing #{@asset}"
-          @doc = Nokogiri::HTML.parse(open(File.join(@cache.path, @asset)), nil, 'UTF-8')
+          @doc = Nokogiri::HTML.parse(IO.read(File.join(@cache.path, @asset)), nil, 'UTF-8')
           
           @uid = @cache.name
           parse_title

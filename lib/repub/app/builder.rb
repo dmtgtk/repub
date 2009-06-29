@@ -76,64 +76,6 @@ module Repub
         
         MetaInf = 'META-INF'
         
-        def postprocess_file(asset)
-          source = IO.read(asset)
-          # Do rx substitutions
-          if @options[:rx] && !@options[:rx].empty?
-            @options[:rx].each do |rx|
-              rx.strip!
-              delimiter = rx[0, 1]
-              rx = rx.gsub(/\\#{delimiter}/, "\n")
-              ra = rx.split(/#{delimiter}/).reject {|e| e.empty? }.each {|e| e.gsub!(/\n/, "#{delimiter}")}
-              raise ParserException, "Invalid regular expression" if ra.empty? || ra[0].nil? || ra.size > 2
-              pattern = ra[0]
-              replacement = ra[1] || ''
-              log.info "Replacing pattern /#{pattern.gsub(/#{delimiter}/, "\\#{delimiter}")}/ with \"#{replacement}\""
-              source.gsub!(Regexp.new(pattern), replacement)
-            end
-          end
-          # Add doctype if missing
-          if source !~ /\s*<!DOCTYPE/
-            log.debug "-- Adding missing doctype"
-            source = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n" + source
-          end
-          # Save processed file
-          File.open(asset, 'w') do |f|
-            f.write(source)
-          end
-        end
-        
-        def postprocess_doc(asset)
-          doc = Nokogiri::HTML.parse(open(asset), nil, 'UTF-8')
-          # Substitute custom CSS
-          if (@options[:css] && !@options[:css].empty?)
-            doc.xpath('//link[@rel="stylesheet"]') do |link|
-              link[:href] = File.basename(@options[:css])
-              log.debug "-- Replacing CSS refs with #{link[:href]}"
-            end
-          end
-          # Remove elements
-          if @options[:remove] && !@options[:remove].empty?
-            @options[:remove].each do |selector|
-              log.info "Removing elements matching selector \"#{selector}\""
-              #p doc.search(selector).size
-              #p doc.search(selector)
-              doc.search(selector).remove
-            end
-          end
-          # Save processed doc
-          File.open(asset, 'w') do |f|
-            if @options[:fixup]
-              # HACK: Nokogiri seems to ignore the fact that xmlns and other attrs aleady present
-              # in html node and adds them anyway. Just remove them here to avoid duplicates.
-              doc.root.attributes.each {|name, value| doc.root.remove_attribute(name) }
-              doc.write_xhtml_to(f, :encoding => 'UTF-8')
-            else
-              doc.write_html_to(f, :encoding => 'UTF-8')
-            end
-          end
-        end
-        
         def copy_and_process_assets
           # Copy html
           @parser.cache.assets[:documents].each do |asset|
@@ -165,6 +107,64 @@ module Repub
             log.debug "-- Copying image #{image}"
             FileUtils.cp(File.join(@parser.cache.path, image), '.')
             @content.add_image(image)
+          end
+        end
+        
+        def postprocess_file(asset)
+          source = IO.read(asset)
+          # Do rx substitutions
+          if @options[:rx] && !@options[:rx].empty?
+            @options[:rx].each do |rx|
+              rx.strip!
+              delimiter = rx[0, 1]
+              rx = rx.gsub(/\\#{delimiter}/, "\n")
+              ra = rx.split(/#{delimiter}/).reject {|e| e.empty? }.each {|e| e.gsub!(/\n/, "#{delimiter}")}
+              raise ParserException, "Invalid regular expression" if ra.empty? || ra[0].nil? || ra.size > 2
+              pattern = ra[0]
+              replacement = ra[1] || ''
+              log.info "Replacing pattern /#{pattern.gsub(/#{delimiter}/, "\\#{delimiter}")}/ with \"#{replacement}\""
+              source.gsub!(Regexp.new(pattern), replacement)
+            end
+          end
+          # Add doctype if missing
+          if source !~ /\s*<!DOCTYPE/
+            log.debug "-- Adding missing doctype"
+            source = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n" + source
+          end
+          # Save processed file
+          File.open(asset, 'w') do |f|
+            f.write(source)
+          end
+        end
+        
+        def postprocess_doc(asset)
+          doc = Nokogiri::HTML.parse(IO.read(asset), nil, 'UTF-8')
+          # Substitute custom CSS
+          if (@options[:css] && !@options[:css].empty?)
+            doc.xpath('//link[@rel="stylesheet"]') do |link|
+              link[:href] = File.basename(@options[:css])
+              log.debug "-- Replacing CSS refs with #{link[:href]}"
+            end
+          end
+          # Remove elements
+          if @options[:remove] && !@options[:remove].empty?
+            @options[:remove].each do |selector|
+              log.info "Removing elements matching selector \"#{selector}\""
+              #p doc.search(selector).size
+              #p doc.search(selector)
+              doc.search(selector).remove
+            end
+          end
+          # Save processed doc
+          File.open(asset, 'w') do |f|
+            if @options[:fixup]
+              # HACK: Nokogiri seems to ignore the fact that xmlns and other attrs aleady present
+              # in html node and adds them anyway. Just remove them here to avoid duplicates.
+              doc.root.attributes.each {|name, value| doc.root.remove_attribute(name) }
+              doc.write_xhtml_to(f, :encoding => 'UTF-8')
+            else
+              doc.write_html_to(f, :encoding => 'UTF-8')
+            end
           end
         end
         
