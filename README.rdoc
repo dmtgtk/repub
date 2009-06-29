@@ -1,26 +1,79 @@
+== Repub
+
+by Invisible Llama (dg at invisiblellama dot net)
+
+{RubyForge Project}[http://rubyforge.org/projects/repub/] | {Github}[http://github.com/invisiblellama/repub/tree/master]
+
 == DESCRIPTION:
 
-Simple HTML to ePub converter.
+Repub is a simple minded HTML to ePub converter.
 
-== FEATURES/PROBLEMS:
+It lacks imagination and won't try to guess the source document structure, you will have to describe where to look
+for title and table of contents. In return, it provides you with greater control over generated
+ePub documents.
 
-Few samples to get started:
+== FEATURES:
 
-* Git User's Manual
+Repub accepts the following parameters:
 
-    repub -x 'title://h1' -x 'toc://div[@class="toc"]/dl' -x 'toc_item:dt' -x 'toc_section:following-sibling::*[1]/dl' \
-        http://www.kernel.org/pub/software/scm/git/docs/user-manual.html
+* XPath expressions for source document title, toc, toc_item and toc_section
+* XPath expressions for elements that will be removed from the converted document
+* Regular expressions for editing the source document
 
-* Project Gutenberg's THE ADVENTURES OF SHERLOCK HOLMES
+Few examples:
 
-    repub -x 'title:div[@class='book']//h1' -x 'toc://table' -x 'toc_item://tr' \
+* Project Gutenberg's THE ADVENTURES OF SHERLOCK HOLMES (with proper table of contents)
+
+    repub -x 'title:div[@class='book']//h1' \
+        -x 'toc://table' \
+        -x 'toc_item://tr' \
+	    http://www.gutenberg.org/dirs/etext99/advsh12h.htm
+
+This tells Repub to look for title in the first found H1 in the DIV of class "book"; that table of contents is
+located in the first TABLE and TOC item can be found inside TR.
+The above will produce readable ePub which can be further enhanced by removing some "noise" content: 
+
+    repub -x 'title:div[@class='book']//h1' \
+        -x 'toc://table' \
+        -x 'toc_item://tr' \
         -X '//pre' -X '//hr' -X '//body/h1' -X '//body/h2' \
 	    http://www.gutenberg.org/dirs/etext99/advsh12h.htm
 
+In addition to parsing, the above command also removes from the final version of document all PRE and HR elements,
+and first H1 and H2 elements from the body.
+
+A bit more complicated example:
+
+* Git User's Manual
+
+    repub -x 'title://h1' \
+        -x 'toc://div[@class="toc"]/dl' \
+        -x 'toc_item:dt' \
+        -x 'toc_section:following-sibling::*[1]/dl' \
+        -w git-manual \
+        http://www.kernel.org/pub/software/scm/git/docs/user-manual.html
+
+This tells Repub to look for title in the first found H1, for TOC in the DL element of the DIV with class "toc" and
+that TOC items can be found inside DT elements. Additionally, TOC item can have a child TOC section inside DL when
+DL element immediately follows DT. 
+
+The above command also saves all XPath expressions as "git-manual" profile, which can be later reused to save keystrokes.
+For example, if you later decide to regenerate Git Manual ePub without TOC at the beginning of document, you can do
+
+    repub -l git-manual -X '//div[@class="toc"]' http://www.kernel.org/pub/software/scm/git/docs/user-manual.html
+
+A few more examples:
+
+* GNU Wget Manual
+
+    repub -m 'creator:gnu.org' \
+        -x 'title://h1' -x 'toc://div[@class="contents"]/ul' -x 'toc_item:li' -x 'toc_section:ul' \
+        -X '//div[@class="contents"]' \
+        http://www.gnu.org/software/wget/manual/wget.html
+
 * Project Gutenberg's ALICE'S ADVENTURES IN WONDERLAND
 
-    repub -x 'title:body/h1' -x 'toc://table' -x 'toc_item://tr' \
-	    -X '//pre' -X '//hr' -X '//body/h4' \
+    repub -x 'title:body/h1' -x 'toc://table' -x 'toc_item://tr' -X '//pre' -X '//hr' -X '//body/h4' \
 	    http://www.gutenberg.org/files/11/11-h/11-h.htm
 
 * The Gelug-Kagyu Tradition of Mahamudra from Berzin Archives
@@ -54,7 +107,7 @@ Parser options:
                                    language publisher relation rights subject title]
   -F, --no-fixup                   Do not attempt to make document meet XHTML 1.0 Strict.
                                    Default is to try and fix things that are broken. 
-  -e, --encoding NAME              Set source document encoding. Default is to autodetect.
+  -e, --encoding NAME              Set source document encoding. Default is to auto detect.
 
 Post-processing options:
   -s, --stylesheet PATH            Use custom stylesheet at PATH to add or override existing
@@ -67,13 +120,20 @@ Post-processing options:
 
 == DEPENDENCIES:
 
-* Builder (https://rubyforge.org/projects/builder/)
+* Builder (http://rubyforge.org/projects/builder/)
 * Nokogiri (http://nokogiri.rubyforge.org/nokogiri/)
-* rchardet (https://rubyforge.org/projects/rchardet/)
+* chardet (http://rubyforge.org/projects/rchardet/)
 * launchy (http://copiousfreetime.rubyforge.org/launchy/)
 
 * wget or httrack
 * zip (Info-ZIP)
+
+== LIMITATIONS/BUGS:
+
+Only everything-on-one-page HTML sources are supported. Repub will download and process all page requisites
+(stylesheets and images) but all content must be on one page.
+
+Bugs: probably.
 
 == INSTALL:
 

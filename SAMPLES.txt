@@ -21,3 +21,6 @@ repub -x 'title://h2' -x 'toc://table' -x 'toc_item://a' -X 'div' -X 'table' -X 
 * Git User's Manual
 
 repub -x 'title://h1' -x 'toc://div[@class="toc"]/dl' -x 'toc_item:dt' -x 'toc_section:following-sibling::*[1]/dl' http://www.kernel.org/pub/software/scm/git/docs/user-manual.html
+
+--
+vim: set ts=4 sw=4 tw=0 encoding=utf-8:

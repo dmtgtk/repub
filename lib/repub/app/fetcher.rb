@@ -81,10 +81,6 @@ module Repub
           return File.join(App.data_path, 'cache')
         end
       
-        def self.inventorize
-          # TODO 
-        end
-      
         def self.cleanup
           Dir.chdir(self.root) { FileUtils.rm_r(Dir.glob('*')) }
         rescue
@@ -94,7 +90,11 @@ module Repub
         attr_reader :url
         attr_reader :name
         attr_reader :path
-        attr_reader :assets
+        
+        def assets
+          inventorize unless @assets
+          @assets
+        end
       
         def self.for_url(url, &block)
           self.new(url).for_url(&block)
@@ -102,8 +102,8 @@ module Repub
       
         def for_url(&block)
           # Download stuff if not yet cached
-          cached = File.exist?(@path)
-          unless cached
+          @cached = File.exist?(@path)
+          unless @cached
             FileUtils.mkdir_p(@path) 
             begin
               Dir.chdir(@path) { yield self }
@@ -115,7 +115,12 @@ module Repub
             log.info "Using cached assets"
             log.debug "-- Cache is #{@path}"
           end
-          # Do post-download tasks
+          self
+        end
+
+        # Do post-download tasks
+        #
+        def self.inventorize
           Dir.chdir(@path) do
             # Enumerate assets
             @assets = {}
@@ -129,12 +134,15 @@ module Repub
             # For freshly downloaded docs, detect encoding and convert to utf-8
             unless cached
               @assets[:documents].each do |doc|
-                log.info "Detecting encoding for #{doc}"
-                s = IO.read(doc)
-                raise FetcherException, "empty document" unless s
-                encoding = UniversalDetector.chardet(s)['encoding']
+                encoding = @options[:encoding]
+                unless encoding
+                  log.info "Detecting encoding for #{doc}"
+                  s = IO.read(doc)
+                  raise FetcherException, "empty document" unless s
+                  encoding = UniversalDetector.chardet(s)['encoding']
+                end
                 if encoding.downcase != 'utf-8'
-                  log.info "Looks like #{encoding}, converting to UTF-8"
+                  log.info "Source encoding is #{encoding}, converting to UTF-8"
                   s = Iconv.conv('utf-8', encoding, IO.read(doc))
                   File.open(doc, 'w') { |f| f.write(s) }
                 else
@@ -143,7 +151,6 @@ module Repub
               end
             end
           end
-          self
         end
       
         def empty?
