@@ -6,7 +6,7 @@ by Invisible Llama (dg at invisiblellama dot net)
 
 == DESCRIPTION:
 
-Repub is a simple minded HTML to ePub converter.
+Repub is a simple HTML to ePub converter.
 
 It lacks imagination and won't try to guess the source document structure, you will have to describe where to look
 for title and table of contents. In return, it provides you with greater control over generated
@@ -16,42 +16,47 @@ ePub documents.
 
 Repub accepts the following parameters:
 
-* XPath expressions for source document title, toc, toc_item and toc_section
-* XPath expressions for elements that will be removed from the converted document
-* Regular expressions for editing the source document
+* Source document URL
+* List of XPath expressions for locating source document title, table of contents, TOC items and TOC sub-sections
+* List of XPath expressions for describing elements that will be removed from the converted document
+* List of regular expressions for editing the source document
+* Publication information metadata tags
+
+All parameters except document URL are optional; the resulting ePub will (probably, if original HTML isn't
+broken too bad) be readable but will be lacking any metadata or TOC.
 
 Few examples:
 
 * Project Gutenberg's THE ADVENTURES OF SHERLOCK HOLMES (with proper table of contents)
 
     repub -x 'title:div[@class='book']//h1' \
-        -x 'toc://table' \
-        -x 'toc_item://tr' \
-	    http://www.gutenberg.org/dirs/etext99/advsh12h.htm
+      -x 'toc://table' \
+      -x 'toc_item://tr' \
+      http://www.gutenberg.org/dirs/etext99/advsh12h.htm
 
 This tells Repub to look for title in the first found H1 in the DIV of class "book"; that table of contents is
 located in the first TABLE and TOC item can be found inside TR.
 The above will produce readable ePub which can be further enhanced by removing some "noise" content: 
 
     repub -x 'title:div[@class='book']//h1' \
-        -x 'toc://table' \
-        -x 'toc_item://tr' \
-        -X '//pre' -X '//hr' -X '//body/h1' -X '//body/h2' \
-	    http://www.gutenberg.org/dirs/etext99/advsh12h.htm
+      -x 'toc://table' \
+      -x 'toc_item://tr' \
+      -X '//pre' -X '//hr' -X '//body/h1' -X '//body/h2' \
+      http://www.gutenberg.org/dirs/etext99/advsh12h.htm
 
-In addition to parsing, the above command also removes from the final version of document all PRE and HR elements,
-and first H1 and H2 elements from the body.
+In addition to parsing, the above command also removes from the final version of document all PREs, HRs and 
+first H1 and H2 elements from the body.
 
 A bit more complicated example:
 
 * Git User's Manual
 
     repub -x 'title://h1' \
-        -x 'toc://div[@class="toc"]/dl' \
-        -x 'toc_item:dt' \
-        -x 'toc_section:following-sibling::*[1]/dl' \
-        -w git-manual \
-        http://www.kernel.org/pub/software/scm/git/docs/user-manual.html
+      -x 'toc://div[@class="toc"]/dl' \
+      -x 'toc_item:dt' \
+      -x 'toc_section:following-sibling::*[1]/dl' \
+      -w git-manual \
+      http://www.kernel.org/pub/software/scm/git/docs/user-manual.html
 
 This tells Repub to look for title in the first found H1, for TOC in the DL element of the DIV with class "toc" and
 that TOC items can be found inside DT elements. Additionally, TOC item can have a child TOC section inside DL when
@@ -67,14 +72,14 @@ A few more examples:
 * GNU Wget Manual
 
     repub -m 'creator:gnu.org' \
-        -x 'title://h1' -x 'toc://div[@class="contents"]/ul' -x 'toc_item:li' -x 'toc_section:ul' \
-        -X '//div[@class="contents"]' \
-        http://www.gnu.org/software/wget/manual/wget.html
+      -x 'title://h1' -x 'toc://div[@class="contents"]/ul' -x 'toc_item:li' -x 'toc_section:ul' \
+      -X '//div[@class="contents"]' \
+      http://www.gnu.org/software/wget/manual/wget.html
 
 * Project Gutenberg's ALICE'S ADVENTURES IN WONDERLAND
 
     repub -x 'title:body/h1' -x 'toc://table' -x 'toc_item://tr' -X '//pre' -X '//hr' -X '//body/h4' \
-	    http://www.gutenberg.org/files/11/11-h/11-h.htm
+      http://www.gutenberg.org/files/11/11-h/11-h.htm
 
 * The Gelug-Kagyu Tradition of Mahamudra from Berzin Archives
 
@@ -82,58 +87,60 @@ A few more examples:
 
 == SYNOPSIS:
 
-Usage: repub [options] url
+  Usage: repub [options] url
 
-General options:
-  -D, --downloader NAME            Which downloader to use to get files (wget or httrack).
-                                   Default is wget.
-  -o, --output PATH                Output path for generated ePub file.
-                                   Default is /Users/dg/Projects/repub/<Parsed_Title>.epub
-  -w, --write-profile NAME         Save given options for later reuse as profile NAME.
-  -l, --load-profile NAME          Load options from saved profile NAME.
-  -W, --write-default              Save given options for later reuse as default profile.
-  -L, --list-profiles              List saved profiles.
-  -C, --cleanup                    Clean up download cache.
-  -v, --verbose                    Turn on verbose output.
-  -q, --quiet                      Turn off any output except errors.
-  -V, --version                    Show version.
-  -h, --help                       Show this help message.
+  General options:
+    -D, --downloader NAME            Which downloader to use to get files (wget or httrack).
+                                     Default is wget.
+    -o, --output PATH                Output path for generated ePub file.
+                                     Default is /Users/dg/Projects/repub/<Parsed_Title>.epub
+    -w, --write-profile NAME         Save given options for later reuse as profile NAME.
+    -l, --load-profile NAME          Load options from saved profile NAME.
+    -W, --write-default              Save given options for later reuse as default profile.
+    -L, --list-profiles              List saved profiles.
+    -C, --cleanup                    Clean up download cache.
+    -v, --verbose                    Turn on verbose output.
+    -q, --quiet                      Turn off any output except errors.
+    -V, --version                    Show version.
+    -h, --help                       Show this help message.
 
-Parser options:
-  -x, --selector NAME:VALUE        Set parser XPath selector NAME to VALUE.
-                                   Recognized selectors are: [title toc toc_item toc_section]
-  -m, --meta NAME:VALUE            Set publication information metadata NAME to VALUE.
-                                   Valid metadata names are: [creator date description
-                                   language publisher relation rights subject title]
-  -F, --no-fixup                   Do not attempt to make document meet XHTML 1.0 Strict.
-                                   Default is to try and fix things that are broken. 
-  -e, --encoding NAME              Set source document encoding. Default is to auto detect.
+  Parser options:
+    -x, --selector NAME:VALUE        Set parser XPath selector NAME to VALUE.
+                                     Recognized selectors are: [title toc toc_item toc_section]
+    -m, --meta NAME:VALUE            Set publication information metadata NAME to VALUE.
+                                     Valid metadata names are: [creator date description
+                                     language publisher relation rights subject title]
+    -F, --no-fixup                   Do not attempt to make document meet XHTML 1.0 Strict.
+                                     Default is to try and fix things that are broken. 
+    -e, --encoding NAME              Set source document encoding. Default is to auto detect.
 
-Post-processing options:
-  -s, --stylesheet PATH            Use custom stylesheet at PATH to add or override existing
-                                   CSS references in the source document.
-  -X, --remove SELECTOR            Remove source element using XPath selector.
-                                   Use -X- to ignore stored profile.
-  -R, --rx /PATTERN/REPLACEMENT/   Edit source HTML using regular expressions.
-                                   Use -R- to ignore stored profile.
-  -B, --browse                     After processing, open resulting HTML in default browser.
+  Post-processing options:
+    -s, --stylesheet PATH            Use custom stylesheet at PATH to add or override existing
+                                     CSS references in the source document.
+    -X, --remove SELECTOR            Remove source element using XPath selector.
+                                     Use -X- to ignore stored profile.
+    -R, --rx /PATTERN/REPLACEMENT/   Edit source HTML using regular expressions.
+                                     Use -R- to ignore stored profile.
+    -B, --browse                     After processing, open resulting HTML in default browser.
 
 == DEPENDENCIES:
 
-* Builder (http://rubyforge.org/projects/builder/)
-* Nokogiri (http://nokogiri.rubyforge.org/nokogiri/)
-* chardet (http://rubyforge.org/projects/rchardet/)
-* launchy (http://copiousfreetime.rubyforge.org/launchy/)
+* {Builder}[http://rubyforge.org/projects/builder/]
+* {Nokogiri}[http://nokogiri.rubyforge.org/nokogiri/]
+* {chardet}[http://rubyforge.org/projects/chardet/]
+* {launchy}[http://copiousfreetime.rubyforge.org/launchy/]
 
-* wget or httrack
-* zip (Info-ZIP)
+Also, the following tools must be somewhere in $PATH:
+
+* {wget}[http://www.gnu.org/software/wget/] or {httrack}[http://www.httrack.com/]
+* {zip (Info-ZIP)}[http://www.info-zip.org/]
 
 == LIMITATIONS/BUGS:
 
-Only everything-on-one-page HTML sources are supported. Repub will download and process all page requisites
-(stylesheets and images) but all content must be on one page.
+Currently, only "everything-on-one-page" HTML sources are supported. Repub will download and process all page requisites
+(stylesheets and images) but all actual content must be on one page.
 
-Bugs: probably.
+Bugs: probably. If you find any, please report them to dg at invisiblellama dot net.
 
 == INSTALL:
 
@@ -143,7 +150,7 @@ Bugs: probably.
 
 (The MIT License)
 
-Copyright (c) 2009 Invisible Llama <dg@invisiblellama.net>
+Copyright (c) 2009 Dmitri Goutnik, Invisible Llama
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
