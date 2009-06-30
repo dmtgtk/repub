@@ -141,8 +141,8 @@ module Repub
           doc = Nokogiri::HTML.parse(IO.read(asset), nil, 'UTF-8')
           # Substitute custom CSS
           if (@options[:css] && !@options[:css].empty?)
-            doc.xpath('//link[@rel="stylesheet"]') do |link|
-              link[:href] = File.basename(@options[:css])
+            doc.xpath('//link[@rel="stylesheet"]').each do |link|
+              link['href'] = File.basename(@options[:css])
               log.debug "-- Replacing CSS refs with #{link[:href]}"
             end
           end
@@ -150,8 +150,6 @@ module Repub
           if @options[:remove] && !@options[:remove].empty?
             @options[:remove].each do |selector|
               log.info "Removing elements matching selector \"#{selector}\""
-              #p doc.search(selector).size
-              #p doc.search(selector)
               doc.search(selector).remove
             end
           end

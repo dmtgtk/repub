@@ -54,17 +54,41 @@ module Repub
           rescue
             raise FetcherException, "invalid URL: #{url}"
           end
-          cmd = "#{@downloader_path} #{@downloader_options} #{url}"
           Cache.for_url(url) do |cache|
             log.debug "-- Downloading into #{cache.path}"
+            cmd = "#{@downloader_path} #{@downloader_options} #{url}"
             unless system(cmd) && !cache.empty?
               raise FetcherException, "Fetch failed."
+            end
+            unless cache.cached?
+              fix_filenames(cache)
+              fix_encoding(cache, @options[:encoding])
             end
           end
         end
         
         private
         
+        def fix_filenames(cache)
+          # TODO: fix non-alphanum characters in doc filenames
+        end
+        
+        def fix_encoding(cache, encoding = nil)
+          cache.assets[:documents].each do |doc|
+            unless encoding
+              log.info "Detecting encoding for #{doc}"
+              s = IO.read(doc)
+              raise FetcherException, "empty document" unless s
+              encoding = UniversalDetector.chardet(s)['encoding']
+            end
+            if encoding.downcase != 'utf-8'
+              log.info "Source encoding is #{encoding}, converting to UTF-8"
+              s = Iconv.conv('utf-8', encoding, IO.read(doc))
+              File.open(doc, 'w') { |f| f.write(s) }
+            end
+          end
+        end
+      
         def which(cmd)
           if !RUBY_PLATFORM.match('mswin')
             cmd = `/usr/bin/which #{cmd}`.strip
@@ -91,11 +115,6 @@ module Repub
         attr_reader :name
         attr_reader :path
         
-        def assets
-          inventorize unless @assets
-          @assets
-        end
-      
         def self.for_url(url, &block)
           self.new(url).for_url(&block)
         end
@@ -117,44 +136,30 @@ module Repub
           end
           self
         end
-
-        # Do post-download tasks
-        #
-        def self.inventorize
-          Dir.chdir(@path) do
+        
+        def assets
+          unless @assets
             # Enumerate assets
-            @assets = {}
-            AssetTypes.each_pair do |asset_type, file_types|
-              @assets[asset_type] ||= []
-              file_types.each do |file_type|
-                @assets[asset_type] << Dir.glob("*.#{file_type}")
-              end
-              @assets[asset_type].flatten!
-            end
-            # For freshly downloaded docs, detect encoding and convert to utf-8
-            unless cached
-              @assets[:documents].each do |doc|
-                encoding = @options[:encoding]
-                unless encoding
-                  log.info "Detecting encoding for #{doc}"
-                  s = IO.read(doc)
-                  raise FetcherException, "empty document" unless s
-                  encoding = UniversalDetector.chardet(s)['encoding']
+            Dir.chdir(@path) do
+              @assets = {}
+              AssetTypes.each_pair do |asset_type, file_types|
+                @assets[asset_type] ||= []
+                file_types.each do |file_type|
+                  @assets[asset_type] << Dir.glob("*.#{file_type}")
                 end
-                if encoding.downcase != 'utf-8'
-                  log.info "Source encoding is #{encoding}, converting to UTF-8"
-                  s = Iconv.conv('utf-8', encoding, IO.read(doc))
-                  File.open(doc, 'w') { |f| f.write(s) }
-                else
-                  log.info "Looks like UTF-8, no conversion needed"
-                end
+                @assets[asset_type].flatten!
               end
             end
           end
+          @assets
         end
-      
+
         def empty?
           Dir.glob(File.join(@path, '*')).empty?
+        end
+        
+        def cached?
+          @cached == true
         end
       
         private
@@ -163,6 +168,7 @@ module Repub
           @url = url
           @name = Digest::SHA1.hexdigest(@url)
           @path = File.join(Cache.root, @name)
+          @assets = nil
         end
       end
       
