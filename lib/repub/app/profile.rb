@@ -35,7 +35,7 @@ module Repub
             case key
             when :selectors
               printf("%4s%-6s\n", '', key)
-              selector_keys = val.keys.map{|k| sk.to_s }.sort.map{|k| sk.to_sym }
+              selector_keys = val.keys.map{|k| k.to_s }.sort.map{|k| k.to_sym }
               selector_keys.each { |sk| printf("%8s%-12s %s\n", '', sk, val[sk]) }
             when :remove
               printf("%4s%-6s\n", '', key)
