@@ -29,26 +29,26 @@ module Repub
         profile = Profile.new
         if p = profile[name]
           keys = p.keys.map{|k| k.to_s }.sort.map{|k| k.to_sym }
-          keys.each do |k|
-            v = p[k]
-            next if v.nil? || (v.respond_to?(:empty?) && v.empty?)
-            case k
+          keys.each do |key|
+            val = p[key]
+            next if val.nil? || (val.respond_to?(:empty?) && val.empty?)
+            case key
             when :selectors
-              printf("%4s%-6s\n", '', k)
-              selector_keys = v.keys.map{|k| k.to_s }.sort.map{|k| k.to_sym }
-              selector_keys.each { |sk| printf("%8s%-12s %s\n", '', sk, v[sk]) }
+              printf("%4s%-6s\n", '', key)
+              selector_keys = val.keys.map{|k| sk.to_s }.sort.map{|k| sk.to_sym }
+              selector_keys.each { |sk| printf("%8s%-12s %s\n", '', sk, val[sk]) }
             when :remove
-              printf("%4s%-6s\n", '', k)
-              v.each { |rk| printf("%20s %s\n", '', rk) }
+              printf("%4s%-6s\n", '', key)
+              val.each { |rk| printf("%20s %s\n", '', rk) }
             when :rx
-              printf("%4s%-6s\n", '', k)
-              v.each { |rk| printf("%20s %s\n", '', rk) }
+              printf("%4s%-6s\n", '', key)
+              val.each { |rk| printf("%20s %s\n", '', rk) }
             when :metadata
-              printf("%4s%-6s\n", '', k)
-              metadata_keys = v.keys.map{|k| k.to_s }.sort.map{|k| k.to_sym }
-              metadata_keys.each { |mk| printf("%8s%-12s %s\n", '', mk, v[mk]) }
+              printf("%4s%-6s\n", '', key)
+              metadata_keys = val.keys.map{|k| k.to_s }.sort.map{|k| k.to_sym }
+              metadata_keys.each { |mk| printf("%8s%-12s %s\n", '', mk, val[mk]) }
             else
-              printf("%4s%-16s %s\n", '', k, v)
+              printf("%4s%-16s %s\n", '', key, val)
             end
           end
         end
