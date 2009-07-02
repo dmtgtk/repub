@@ -88,6 +88,7 @@ module Repub
             @content.add_document(asset)
             @asset_path = File.expand_path(asset)
           end
+
           # Copy css
           if @options[:css].nil? || @options[:css].empty?
             # No custom css, copy one from assets
@@ -102,11 +103,26 @@ module Repub
             FileUtils.cp(@options[:css], '.')
             @content.add_stylesheet(File.basename(@options[:css]))
           end
+
           # Copy images
           @parser.cache.assets[:images].each do |image|
             log.debug "-- Copying image #{image}"
             FileUtils.cp(File.join(@parser.cache.path, image), '.')
             @content.add_image(image)
+          end
+
+          # Copy external custom files (-a option)
+          @options[:add].each do |file|
+            log.debug "-- Copying external file #{file}"
+            FileUtils.cp(file, '.')
+            case File.extname(file)
+            when /.*\.(html?)$/
+              @content.add_document(file)
+            when /.*\.(css)$/
+              @content.add_stylesheet(file)
+            when /.*\.(jpeg|jpg|png|gif|svg)$/
+              @content.add_image(file)
+            end
           end
         end
         
@@ -146,10 +162,34 @@ module Repub
               log.debug "-- Replacing CSS refs with #{link[:href]}"
             end
           end
+          # Insert elements after selector
+          if @options[:after]
+            @options[:after].each do |e|
+              selector = e.keys.first
+              fragment = e[selector]
+              element = doc.xpath(selector).first
+              if element
+                element.add_next_sibling(fragment)
+                log.info "Inserting fragment \"#{fragment}\" after \"#{selector}\""
+              end
+            end
+          end
+          # Insert elements before selector
+          if @options[:before]
+            @options[:before].each do |e|
+              selector = e.keys.first
+              fragment = e[selector]
+              element = doc.xpath(selector).first
+              if element
+                element.add_previous_sibling(fragment)
+                log.info "Inserting fragment \"#{fragment}\" before \"#{selector}\""
+              end
+            end
+          end
           # Remove elements
           if @options[:remove] && !@options[:remove].empty?
             @options[:remove].each do |selector|
-              log.info "Removing elements matching selector \"#{selector}\""
+              log.info "Removing elements \"#{selector}\""
               doc.search(selector).remove
             end
           end

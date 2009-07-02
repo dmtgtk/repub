@@ -4,6 +4,7 @@ require 'uri'
 require 'iconv'
 require 'rubygems'
 
+# Temporary disable warnings from chardet
 old_verbose = $VERBOSE
 $VERBOSE = false
 require 'UniversalDetector'
@@ -24,7 +25,7 @@ module Repub
         :stylesheets => %w[css],
         :images => %w[jpg jpeg png gif svg]
       }
-  
+
       class Fetcher
         include Logger
         

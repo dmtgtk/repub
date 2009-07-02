@@ -11,6 +11,9 @@ module Repub
 
         # Default options
         @options = {
+          :add            => [],
+          :after          => [],
+          :before         => [],
           :browser        => false,
           :css            => nil,
           :encoding       => nil,
@@ -133,6 +136,34 @@ module Repub
             "CSS references in the source document."
           ) { |value| options[:css] = File.expand_path(value) }
 
+          opts.on("-a", "--add PATH", String,
+            "Add external file to generated ePub"
+          ) { |value| options[:add] << File.expand_path(value) }
+
+          opts.on("-N", "--new-fragment XHTML", String,
+            "Prepare document fragment for -A and -P operations."
+          ) do |value|
+            begin
+              @fragment = Nokogiri::HTML.fragment(value)
+            rescue Exception => ex
+              log.fatal "ERROR: invalid fragment: #{ex.to_s}"
+            end
+          end
+          
+          opts.on("-A", "--after SELECTOR", String,
+            "Insert fragment after element with XPath selector."
+          ) do |value|
+            log.fatal "ERROR: -A requires a fragment. See '#{App.name} --help'." if !@fragment
+            @options[:after] << {value => @fragment.clone}
+          end
+          
+          opts.on("-P", "--before SELECTOR", String,
+            "Insert fragment before element with XPath selector."
+          ) do |value|
+            log.fatal "ERROR: -P requires a fragment. See '#{App.name} --help'." if !@fragment
+            @options[:before] << {value => @fragment.clone}
+          end
+          
           opts.on("-X", "--remove SELECTOR", String,
             "Remove source element using XPath selector.",
             "Use -X- to ignore stored profile."
@@ -143,7 +174,7 @@ module Repub
             "Use -R- to ignore stored profile."
           ) { |value| value == '-' ? options[:rx] = [] : options[:rx] << value }
 
-          opts.on("-B", "--browse",
+          opts.on("-B", "--browser",
             "After processing, open resulting HTML in default browser."
           ) { |value| options[:browser] = true }
 
