@@ -83,7 +83,7 @@ module Repub
               encoding = UniversalDetector.chardet(s)['encoding']
             end
             if encoding.downcase != 'utf-8'
-              log.info "Source encoding is #{encoding}, converting to UTF-8"
+              log.info "Source encoding appears to be #{encoding}, converting to UTF-8"
               s = Iconv.conv('utf-8', encoding, IO.read(doc))
               File.open(doc, 'w') { |f| f.write(s) }
             end

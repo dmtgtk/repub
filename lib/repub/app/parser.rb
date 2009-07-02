@@ -121,7 +121,7 @@ module Repub
             # Get item's anchor and href
             a = item.name == 'a' ? item : item.at('a')
             next if !a
-            href = a[:href]
+            href = a['href']
             next if !href
             # Is this a leaf item or node ?
             subsection = item.xpath(@selectors[:toc_section]).first

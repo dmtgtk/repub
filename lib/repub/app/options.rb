@@ -137,7 +137,7 @@ module Repub
           ) { |value| options[:css] = File.expand_path(value) }
 
           opts.on("-a", "--add PATH", String,
-            "Add external file to generated ePub"
+            "Add external file to the generated ePub."
           ) { |value| options[:add] << File.expand_path(value) }
 
           opts.on("-N", "--new-fragment XHTML", String,

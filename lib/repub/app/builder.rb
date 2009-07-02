@@ -128,6 +128,7 @@ module Repub
         
         def postprocess_file(asset)
           source = IO.read(asset)
+
           # Do rx substitutions
           if @options[:rx] && !@options[:rx].empty?
             @options[:rx].each do |rx|
@@ -142,11 +143,13 @@ module Repub
               source.gsub!(Regexp.new(pattern), replacement)
             end
           end
+
           # Add doctype if missing
           if source !~ /\s*<!DOCTYPE/
             log.debug "-- Adding missing doctype"
             source = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n" + source
           end
+
           # Save processed file
           File.open(asset, 'w') do |f|
             f.write(source)
@@ -155,14 +158,36 @@ module Repub
         
         def postprocess_doc(asset)
           doc = Nokogiri::HTML.parse(IO.read(asset), nil, 'UTF-8')
-          # Substitute custom CSS
-          if (@options[:css] && !@options[:css].empty?)
-            doc.xpath('//link[@rel="stylesheet"]').each do |link|
+
+          # Set Content-Type charset to UTF-8
+          doc.xpath('//head/meta[@http-equiv="Content-Type"]').each do |el|
+            el['content'] = 'text/html; charset=utf-8'
+          end
+
+          # Add or substitute custom CSS
+          if @options[:css] && !@options[:css].empty?
+            # First remove inline style elements, if any
+            doc.xpath('//head/style').remove
+            # Now look for links
+            link_elements = doc.xpath('//head/link[@rel="stylesheet"]')
+            if link_elements.empty?
+              # No stylesheet refs in file, add a new one
+              link = Nokogiri::XML::Node.new('link', doc)
+              link['rel'] = 'stylesheet'
+              link['type'] = 'text/css'
               link['href'] = File.basename(@options[:css])
-              log.debug "-- Replacing CSS refs with #{link[:href]}"
+              doc.at('//head').add_child(link)
+              log.debug "-- Adding CSS ref with #{link['href']}"
+            else
+              # Found stylesheet links, replace hrefs
+              link_elements.each do |link|
+                link['href'] = File.basename(@options[:css])
+                log.debug "-- Replacing CSS refs with #{link['href']}"
+              end
             end
           end
-          # Insert elements after selector
+
+          # Insert elements after/before selector
           if @options[:after]
             @options[:after].each do |e|
               selector = e.keys.first
@@ -174,7 +199,6 @@ module Repub
               end
             end
           end
-          # Insert elements before selector
           if @options[:before]
             @options[:before].each do |e|
               selector = e.keys.first
@@ -186,6 +210,7 @@ module Repub
               end
             end
           end
+
           # Remove elements
           if @options[:remove] && !@options[:remove].empty?
             @options[:remove].each do |selector|
@@ -193,6 +218,7 @@ module Repub
               doc.search(selector).remove
             end
           end
+
           # Save processed doc
           File.open(asset, 'w') do |f|
             if @options[:fixup]
