@@ -7,7 +7,7 @@ module Repub
   class Container
     def to_xml
       out = ''
-      builder = Builder::XmlMarkup.new(:target => out, :indent => 4)
+      builder = Builder::XmlMarkup.new(:target => out)
       builder.instruct!
       builder.container :xmlns => "urn:oasis:names:tc:opendocument:xmlns:container", :version => "1.0" do
         builder.rootfiles do

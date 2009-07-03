@@ -1,4 +1,5 @@
 require 'delegate'
+require 'yaml'
 
 module Repub
   class App

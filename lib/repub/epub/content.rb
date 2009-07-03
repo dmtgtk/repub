@@ -8,12 +8,9 @@ module Repub
     
     def initialize(uid)
       @metadata = Metadata.new('Untitled', 'en', uid, Date.today.to_s)
-      @css_counter = 0
-      @img_counter = 0
-      @html_counter = 0
       @manifest_items = []
       @spine_items = []
-      @manifest_items << ContentItem.new('ncx', 'toc.ncx', 'application/x-dtbncx+xml')
+      @manifest_items << ContentItem.new('ncx', 'toc.ncx')
     end
     
     class Metadata < Struct.new(
@@ -31,40 +28,42 @@ module Repub
     end
     
     attr_reader :metadata
-    
-    def add_page_template(href = 'page-template.xpgt', id = 'pt')
-      @manifest_items << ContentItem.new(id, href, 'application/vnd.adobe-page-template+xml')
+
+    def add_item(href, id = nil)
+      item = ContentItem.new(id || "item_#{@manifest_items.size}", href)
+      @manifest_items << item
+      @spine_items << item if item.document?
     end
     
-    def add_stylesheet(href, id = nil)
-      @manifest_items << ContentItem.new(id || "css_#{@css_counter += 1}", href, 'text/css')
-    end
-    
-    def add_image(href, id = nil)
-      image_type = case(href.strip.downcase)
-        when /.*\.(jpeg|jpg)$/
-          'image/jpeg'
-        when /.*\.png$/
-          'image/png'
-        when /.*\.gif$/
-          'image/gif'
-        when /.*\.svg$/
-          'image/svg+xml'
-        else
-          raise 'Unsupported image type'
-      end
-      @manifest_items << ContentItem.new(id || "img_#{@img_counter += 1}", href, image_type)
-    end
-    
-    def add_document(href, id = nil)
-      manifest_item = ContentItem.new(id || "item_#{@html_counter += 1}", href, 'application/xhtml+xml')
-      @manifest_items << manifest_item
-      @spine_items << manifest_item
-    end
+    #def add_stylesheet(href, id = nil)
+    #  @manifest_items << ContentItem.new(id || "css_#{@css_counter += 1}", href, 'text/css')
+    #end
+    #
+    #def add_image(href, id = nil)
+    #  image_type = case(href.strip.downcase)
+    #    when /.*\.(jpeg|jpg)$/
+    #      'image/jpeg'
+    #    when /.*\.png$/
+    #      'image/png'
+    #    when /.*\.gif$/
+    #      'image/gif'
+    #    when /.*\.svg$/
+    #      'image/svg+xml'
+    #    else
+    #      raise 'Unsupported image type'
+    #  end
+    #  @manifest_items << ContentItem.new(id || "img_#{@img_counter += 1}", href, image_type)
+    #end
+    #
+    #def add_document(href, id = nil)
+    #  manifest_item = ContentItem.new(id || "item_#{@html_counter += 1}", href, 'application/xhtml+xml')
+    #  @manifest_items << manifest_item
+    #  @spine_items << manifest_item
+    #end
     
     def to_xml
       out = ''
-      builder = Builder::XmlMarkup.new(:target => out, :indent => 4)
+      builder = Builder::XmlMarkup.new(:target => out)
       builder.instruct!
       builder.package :xmlns => "http://www.idpf.org/2007/opf",
           'unique-identifier' => "dcidid",
@@ -83,7 +82,7 @@ module Repub
     end
     
     private
-    
+
     def metadata_to_xml(builder)
       builder.metadata 'xmlns:dc' => "http://purl.org/dc/elements/1.1/",
         'xmlns:dcterms' => "http://purl.org/dc/terms/",
@@ -129,6 +128,32 @@ module Repub
         :href,
         :media_type
       )
+
+      def initialize(id, href)
+        super(id, href)
+        self.media_type = case href.strip.downcase
+          when /.*\.html?$/
+            'application/xhtml+xml'
+          when /.*\.css$/
+            'text/css'
+          when /.*\.(jpeg|jpg)$/
+            'image/jpeg'
+          when /.*\.png$/
+            'image/png'
+          when /.*\.gif$/
+            'image/gif'
+          when /.*\.svg$/
+            'image/svg+xml'
+          when /.*\.ncx$/
+            'application/x-dtbncx+xml'
+          else
+            raise 'Unknown media type'
+        end
+      end
+
+      def document?
+        self.media_type == 'application/xhtml+xml'
+      end
     end
     
     def manifest_to_xml(manifest_items, builder)

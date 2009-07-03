@@ -85,7 +85,7 @@ module Repub
             # Do post-processing
             postprocess_file(asset)
             postprocess_doc(asset)
-            @content.add_document(asset)
+            @content.add_item(asset)
             @asset_path = File.expand_path(asset)
           end
 
@@ -95,34 +95,27 @@ module Repub
             @parser.cache.assets[:stylesheets].each do |css|
               log.debug "-- Copying stylesheet #{css}"
               FileUtils.cp(File.join(@parser.cache.path, css), '.')
-              @content.add_stylesheet(css)
+              @content.add_item(css)
             end
           else
             # Copy custom css
             log.debug "-- Using custom stylesheet #{@options[:css]}"
             FileUtils.cp(@options[:css], '.')
-            @content.add_stylesheet(File.basename(@options[:css]))
+            @content.add_item(File.basename(@options[:css]))
           end
 
           # Copy images
           @parser.cache.assets[:images].each do |image|
             log.debug "-- Copying image #{image}"
             FileUtils.cp(File.join(@parser.cache.path, image), '.')
-            @content.add_image(image)
+            @content.add_item(image)
           end
 
           # Copy external custom files (-a option)
           @options[:add].each do |file|
             log.debug "-- Copying external file #{file}"
             FileUtils.cp(file, '.')
-            case File.extname(file)
-            when /.*\.(html?)$/
-              @content.add_document(file)
-            when /.*\.(css)$/
-              @content.add_stylesheet(file)
-            when /.*\.(jpeg|jpg|png|gif|svg)$/
-              @content.add_image(file)
-            end
+            @content.add_item(file)
           end
         end
         
