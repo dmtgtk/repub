@@ -11,7 +11,11 @@ class TestToc < Test::Unit::TestCase
     doc = Nokogiri::XML.parse(s)
     #p doc
     p "=========="
-    p doc.root.xpath("//head").each {|c| p "-- #{c.name}"}
+    #n = doc.root.namespaces
+    #p n
+    n = doc.root.namespaces
+    p n
+    p doc.xpath("//head")
     p doc.xpath("head").first.children.each {|c| p "-- #{c.name}"}
     assert(!doc.xpath('*').empty?)
     assert(!doc.xpath('//ncx').empty?)
