@@ -9,22 +9,22 @@ class TestFetcher < Test::Unit::TestCase
   
   def test_fetcher
     @options = {
-      :url            => 'http://www.berzinarchives.com/web/x/prn/p.html_1614431902.html',
+      :url            => 'http://repub.rubyforge.org/',
       :helper         => 'wget'
     }
     assert_nothing_raised do
       cache = fetch
       #p cache
-      assert_equal('http://www.berzinarchives.com/web/x/prn/p.html_1614431902.html', cache.url)
-      assert(cache.path.include?('.repub/cache/f963050ead9ee7775a4155e13743d47bc851d5d8'))
-      assert_equal('f963050ead9ee7775a4155e13743d47bc851d5d8', cache.name)
-      # assert(File.exist?(File.join(f.asset_root, f.asset_name)), "Fetch failed.")
+      assert_equal('http://repub.rubyforge.org/', cache.url)
+      assert_equal('4a14536d6beb8eb74767b4c3e54d4e855eee5642', cache.name)
+      assert(cache.path.include?('.repub/cache/4a14536d6beb8eb74767b4c3e54d4e855eee5642'))
+      assert(File.exist?(File.join(cache.path, cache.assets[:documents][0])))
     end
   end
 
   def test_fetcher_fail
     @options = {
-      :url            => 'not-existing',
+      :url            => 'bleh',
       :helper         => 'wget'
     }
    assert_raise(Repub::App::FetcherException) do
