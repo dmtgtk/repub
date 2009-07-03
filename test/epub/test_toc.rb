@@ -7,9 +7,15 @@ class TestToc < Test::Unit::TestCase
   def test_toc_create
     x = Repub::Epub::Toc.new('some-name')
     s = x.to_xml
-    #puts s
-    doc = Nokogiri::HTML(s)
-    # TODO 
+    puts s
+    doc = Nokogiri::XML.parse(s)
+    #p doc
+    p "=========="
+    p doc.root.xpath("//head").each {|c| p "-- #{c.name}"}
+    p doc.xpath("head").first.children.each {|c| p "-- #{c.name}"}
+    assert(!doc.xpath('*').empty?)
+    assert(!doc.xpath('//ncx').empty?)
+    #assert_equal('some-name', doc.at("//meta[@name='dtb:uid']")['content'])
   end
   
   def test_toc

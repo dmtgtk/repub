@@ -116,7 +116,6 @@ module Repub
             log.debug "-- Copying external file #{file}"
             FileUtils.cp(file, '.')
             @content.add_item(file)
-            end
           end
         end
         

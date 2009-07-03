@@ -24,15 +24,14 @@ class TestContent < Test::Unit::TestCase
 
   def test_manifest
     x = Repub::Epub::Content.new('some-name')
-    x.add_page_template
-    x.add_stylesheet 'style.css'
-    x.add_stylesheet 'more-style.css'
-    x.add_image ' logo.jpg '
-    x.add_image ' image.png'
-    x.add_image 'picture.jpeg     '
-    x.add_document 'intro.html', 'intro'
-    x.add_document 'chapter-1.html'
-    x.add_document 'glossary.html', 'glossary'
+    x.add_item 'style.css'
+    x.add_item 'more-style.css'
+    x.add_item ' logo.jpg '
+    x.add_item ' image.png'
+    x.add_item 'picture.jpeg     '
+    x.add_item 'intro.html', 'intro'
+    x.add_item 'chapter-1.html'
+    x.add_item 'glossary.html', 'glossary'
     s = x.to_xml
     #puts s
     doc = Nokogiri::HTML(s)
