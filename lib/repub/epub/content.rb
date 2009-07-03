@@ -63,7 +63,7 @@ module Repub
     
     def to_xml
       out = ''
-      builder = Builder::XmlMarkup.new(:target => out, :indent => 4)
+      builder = Builder::XmlMarkup.new(:target => out)
       builder.instruct!
       builder.package :xmlns => "http://www.idpf.org/2007/opf",
           'unique-identifier' => "dcidid",

@@ -24,7 +24,7 @@ module Repub
     
     def to_xml
       out = ''
-      builder = Builder::XmlMarkup.new(:target => out, :indent => 4)
+      builder = Builder::XmlMarkup.new(:target => out)
       builder.instruct!
       builder.declare! :DOCTYPE, :ncx, :PUBLIC, "-//NISO//DTD ncx 2005-1//EN", "http://www.daisy.org/z3986/2005/ncx-2005-1.dtd"
       builder.ncx :xmlns => "http://www.daisy.org/z3986/2005/ncx/", :version => "2005-1" do
@@ -54,7 +54,7 @@ module Repub
           builder.meta :name => "dtb:uid", :content => self.uid
           builder.meta :name => "dtb:depth", :content => @depth
           builder.meta :name => "dtb:totalPageCount", :content => 0
-          builder.meta :name => "dtb:dtb:maxPageNumber", :content => 0
+          builder.meta :name => "dtb:maxPageNumber", :content => 0
         end
       end
     end
