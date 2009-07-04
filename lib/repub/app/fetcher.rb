@@ -37,14 +37,15 @@ module Repub
         def initialize(options)
           @options = options
           @downloader_path, @downloader_options = ENV['REPUB_DOWNLOADER'], ENV['REPUB_DOWNLOADER_OPTIONS']
-          begin
-            downloader = Downloaders[@options[:helper].to_sym] rescue Downloaders[:wget]
-            log.debug "-- Using #{downloader[:cmd]} #{downloader[:options]}"
-            @downloader_path ||= which(downloader[:cmd])
-            @downloader_options ||= downloader[:options]
-          rescue RuntimeError
-            raise FetcherException, "unknown helper '#{@options[:helper]}'"
-          end
+          downloader =
+            begin
+              Downloaders[@options[:helper].to_sym] || Downloaders[:wget]
+            rescue
+              Downloaders[:wget]
+            end
+          log.debug "-- Using #{downloader[:cmd]} #{downloader[:options]}"
+          @downloader_path ||= which(downloader[:cmd])
+          @downloader_options ||= downloader[:options]
         end
         
         def fetch
