@@ -162,7 +162,7 @@ module Repub
             if @options[:css] == '-'
               # Also remove all inline styles
               doc.xpath('//head/style').remove
-              log.debug "-- Removing all stylesheet links and style elements"
+              log.info "Removing all stylesheet links and style elements"
             else
               # Add custom stylesheet link
               link = Nokogiri::XML::Node.new('link', doc)
@@ -171,7 +171,7 @@ module Repub
               link['href'] = File.basename(@options[:css])
               # Add as the last child so it has precedence over (possible) inline styles before
               doc.at('//head').add_child(link)
-              log.debug "-- Replacing CSS refs with #{link['href']}"
+              log.info "Replacing CSS refs with \"#{link['href']}\""
             end
           end
 
@@ -181,8 +181,8 @@ module Repub
             fragment = e[selector]
             element = doc.xpath(selector).first
             if element
-              element.add_next_sibling(fragment)
               log.info "Inserting fragment \"#{fragment.to_html}\" after \"#{selector}\""
+              fragment.children.to_a.reverse.each {|node| element.add_next_sibling(node) }
             end
           end if @options[:after]
           @options[:before].each do |e|
@@ -190,8 +190,8 @@ module Repub
             fragment = e[selector]
             element = doc.xpath(selector).first
             if element
-              element.add_previous_sibling(fragment)
               log.info "Inserting fragment \"#{fragment}\" before \"#{selector}\""
+              fragment.children.to_a.each {|node| element.add_previous_sibling(node) }
             end
           end if @options[:before]
 
@@ -203,7 +203,7 @@ module Repub
 
           # Save processed doc
           File.open(asset, 'w') do |f|
-            if @options[:fixup]
+            if @options[:fixup] || true
               # HACK: Nokogiri seems to ignore the fact that xmlns and other attrs aleady present
               # in html node and adds them anyway. Just remove them here to avoid duplicates.
               doc.root.attributes.each {|name, value| doc.root.remove_attribute(name) }

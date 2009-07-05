@@ -49,7 +49,6 @@ class TestBuilder < Test::Unit::TestCase
     builder = build(parse(fetch))
     doc_path = builder.document_path
     doc_text = IO.read(doc_path)
-    #p doc_text
     assert(doc_text =~ /Retpahc/ && doc_text !~ /Chapter/)
     assert(doc_text =~ /<h2>/ && doc_text !~ /<h1>/)
     assert(doc_text =~ /<\/h2>/ && doc_text !~ /<\/h1>/)
@@ -61,7 +60,6 @@ class TestBuilder < Test::Unit::TestCase
     builder = build(parse(fetch))
     doc_path = builder.document_path
     doc_text = IO.read(doc_path)
-    #p doc_text
     doc = Nokogiri::HTML.parse(doc_text, nil, 'UTF-8')
     links = doc.xpath('//head/link[@rel="stylesheet"]')
     # we have single link
@@ -78,7 +76,6 @@ class TestBuilder < Test::Unit::TestCase
     builder = build(parse(fetch))
     doc_path = builder.document_path
     doc_text = IO.read(doc_path)
-    p doc_text
     doc = Nokogiri::HTML.parse(doc_text, nil, 'UTF-8')
     links = doc.xpath('//head/link[@rel="stylesheet"]')
     # no stylesheet links
@@ -88,18 +85,68 @@ class TestBuilder < Test::Unit::TestCase
     assert_equal(0, styles.size)
   end
   
+  def next_nontext_sibling(el)
+    begin
+      el = el.next_sibling
+    end while el.text?
+    el
+  end
+  
+  def previous_nontext_sibling(el)
+    begin
+      el = el.previous_sibling
+    end while el.text?
+    el
+  end
+  
   def test_inserting_elements_after
     selector1 = '//ul'
     fragment1 = Nokogiri::HTML.fragment('<p>blah</p>')
     selector2 = '//p[last()]'
-    fragment2 = Nokogiri::HTML.fragment('<span>bleh</span>')
-    @options[:after] = [{ selector1 => fragment1}, {selector2 => fragment2}]
+    fragment2 = Nokogiri::HTML.fragment('<span>bleh</span><div>boo</div>')
+    @options[:after] = [{ selector1 => fragment1.clone}, {selector2 => fragment2.clone}]
     builder = build(parse(fetch))
     doc_path = builder.document_path
     doc_text = IO.read(doc_path)
-    #p doc_text
     doc = Nokogiri::HTML.parse(doc_text, nil, 'UTF-8')
-    p doc
-    assert_equal(fragment1.to_html, doc.xpath(selector1).first.next_sibling.to_html)
+    el = next_nontext_sibling(doc.at(selector1))
+    assert_equal(fragment1.children[0].to_s.strip, el.to_s.strip)
+    # first fragment node
+    el = next_nontext_sibling(doc.at(selector2))
+    assert_equal(fragment2.children[0].to_s.strip, el.to_s.strip)
+    # second fragment node
+    el = next_nontext_sibling(el)
+    assert_equal(fragment2.children[1].to_s.strip, el.to_s.strip)
+  end
+
+  def test_inserting_elements_before
+    selector1 = '//a[@id="c11"]'
+    fragment1 = Nokogiri::HTML.fragment('<h4>blah</h4><div>boo</div>')
+    selector2 = '//p[position()=5]'
+    fragment2 = Nokogiri::HTML.fragment('<div>test</div>')
+    @options[:before] = [{ selector1 => fragment1.clone}, {selector2 => fragment2.clone}]
+    builder = build(parse(fetch))
+    doc_path = builder.document_path
+    doc_text = IO.read(doc_path)
+    doc = Nokogiri::HTML.parse(doc_text, nil, 'UTF-8')
+    # first fragment node
+    el = previous_nontext_sibling(doc.at(selector1))
+    assert_equal(fragment1.children[1].to_s.strip, el.to_s.strip)
+    # second fragment node
+    el = previous_nontext_sibling(el)
+    assert_equal(fragment1.children[0].to_s.strip, el.to_s.strip)
+    el = previous_nontext_sibling(doc.at(selector2))
+    assert_equal(fragment2.children[0].to_s.strip, el.to_s.strip)
+  end
+  
+  def test_remove_elements
+    @options[:remove] = ['ul', '//a[@id="c2"]', 'div[@class="img"]']
+    builder = build(parse(fetch))
+    doc_path = builder.document_path
+    doc_text = IO.read(doc_path)
+    doc = Nokogiri::HTML.parse(doc_text, nil, 'UTF-8')
+    @options[:remove].each do |selector|
+      assert_equal(0, doc.xpath(selector).size)
+    end
   end
 end

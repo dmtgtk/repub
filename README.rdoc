@@ -67,7 +67,7 @@ For example, if you later decide to regenerate Git Manual ePub without TOC at th
 
     repub -l git-manual -X '//div[@class="toc"]' http://www.kernel.org/pub/software/scm/git/docs/user-manual.html
 
-A few more examples:
+Few more examples:
 
 * GNU Wget Manual
 
@@ -141,6 +141,10 @@ Also, the following tools must be somewhere in $PATH:
 
 Currently, only "everything-on-one-page" HTML sources are supported. Repub will download and process all page requisites
 (stylesheets and images) but all actual content must be on one page.
+
+Encoding auto-detection is slow.
+
+Chardet 0.9.0 is broken under Ruby 1.9.
 
 Bugs: probably. If you find any, please report them to dg at invisiblellama dot net.
 

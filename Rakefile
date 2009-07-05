@@ -1,4 +1,5 @@
 begin
+  require 'rubygems'
   require 'bones'
   Bones.setup
 rescue LoadError

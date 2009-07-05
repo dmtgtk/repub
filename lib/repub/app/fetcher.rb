@@ -31,7 +31,7 @@ module Repub
         
         Downloaders = {
           :wget     => { :cmd => 'wget', :options => '-nv -E -H -k -p -nH -nd' },
-          :httrack  => { :cmd => 'httrack', :options => '-gB -r2 +*.css +*.jpg -*.xml -*.html' }
+          :httrack  => { :cmd => 'httrack', :options => '-gBqQ -r2 +*.css +*.jpg -*.xml -*.html' }
         }
         
         def initialize(options)

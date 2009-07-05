@@ -1,6 +1,27 @@
-== 0.2.1 / 2009-06-26
+== 0.3.3 / 2009-07-05
 
-* Initial release
+* New features
+
+    * Option to add external files to the generated ePub (e.g. cover images, logos etc)
+    * Option to insert HTML fragments before/after specific element
+    * It is now possible to instruct repub to remove all links to CSS and <style> elements from source doc
+
+* Bug fixes
+
+    * Metadata double namespace prefix
+    * Encoding autodetection now is done only once after download (as it was supposed to be)
+    * -e flag actually works
+    * Source doc content-type encoding now is always set to utf-8
+    * Fixed warnings in Profile helper under Ruby 1.9.1
+
+== 0.3.2 / 2009-06-30
+
+* Improved Win32 support
+* Updated documentation
+
+== 0.3.1 / 2009-06-28
+
+* Fixed App.data_path bug
 
 == 0.3.0 / 2009-06-28
 
@@ -8,11 +29,6 @@
 * Better parsing for hierarchical TOCs
 * Many bug fixes
 
-== 0.3.1 / 2009-06-28
+== 0.2.1 / 2009-06-26
 
-* Fixed App.data_path bug
-
-== 0.3.2 / 2009-06-30
-
-* Improved Win32 support
-* Updated documentation
+* Initial release

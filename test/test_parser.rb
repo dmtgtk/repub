@@ -39,7 +39,7 @@ class TestParser < Test::Unit::TestCase
     assert_equal(2, parser.toc[0].subitems.size)
     assert_equal('Chapter 1.2', parser.toc[0].subitems[1].title)
     assert_equal(cache.assets[:documents][0], parser.toc[0].subitems[1].uri)
-    assert_equal('12', parser.toc[0].subitems[1].fragment_id)
+    assert_equal('c12', parser.toc[0].subitems[1].fragment_id)
   end
 
 end
