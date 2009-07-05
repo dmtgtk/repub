@@ -83,41 +83,47 @@ A few more examples:
 
 == SYNOPSIS:
 
-  Usage: repub [options] url
+Repub is a simple HTML to ePub converter.
 
-  General options:
-    -D, --downloader NAME            Which downloader to use to get files (wget or httrack).
-                                     Default is wget.
-    -o, --output PATH                Output path for generated ePub file.
-                                     Default is /Users/dg/Projects/repub/<Parsed_Title>.epub
-    -w, --write-profile NAME         Save given options for later reuse as profile NAME.
-    -l, --load-profile NAME          Load options from saved profile NAME.
-    -W, --write-default              Save given options for later reuse as default profile.
-    -L, --list-profiles              List saved profiles.
-    -C, --cleanup                    Clean up download cache.
-    -v, --verbose                    Turn on verbose output.
-    -q, --quiet                      Turn off any output except errors.
-    -V, --version                    Show version.
-    -h, --help                       Show this help message.
+Usage: repub [options] url
 
-  Parser options:
-    -x, --selector NAME:VALUE        Set parser XPath selector NAME to VALUE.
-                                     Recognized selectors are: [title toc toc_item toc_section]
-    -m, --meta NAME:VALUE            Set publication information metadata NAME to VALUE.
-                                     Valid metadata names are: [creator date description
-                                     language publisher relation rights subject title]
-    -F, --no-fixup                   Do not attempt to make document meet XHTML 1.0 Strict.
-                                     Default is to try and fix things that are broken. 
-    -e, --encoding NAME              Set source document encoding. Default is to auto detect.
+General options:
+  -D, --downloader NAME            Which downloader to use to get files (wget or httrack).
+                                   Default is wget.
+  -o, --output PATH                Output path for generated ePub file.
+                                   Default is /Users/dg/Projects/repub/<Parsed_Title>.epub
+  -w, --write-profile NAME         Save given options for later reuse as profile NAME.
+  -l, --load-profile NAME          Load options from saved profile NAME.
+  -W, --write-default              Save given options for later reuse as default profile.
+  -L, --list-profiles              List saved profiles.
+  -C, --cleanup                    Clean up download cache.
+  -v, --verbose                    Turn on verbose output.
+  -q, --quiet                      Turn off any output except errors.
+  -V, --version                    Show version.
+  -h, --help                       Show this help message.
 
-  Post-processing options:
-    -s, --stylesheet PATH            Use custom stylesheet at PATH to add or override existing
-                                     CSS references in the source document.
-    -X, --remove SELECTOR            Remove source element using XPath selector.
-                                     Use -X- to ignore stored profile.
-    -R, --rx /PATTERN/REPLACEMENT/   Edit source HTML using regular expressions.
-                                     Use -R- to ignore stored profile.
-    -B, --browse                     After processing, open resulting HTML in default browser.
+Parser options:
+  -x, --selector NAME:VALUE        Set parser XPath selector NAME to VALUE.
+                                   Recognized selectors are: [title toc toc_item toc_section]
+  -m, --meta NAME:VALUE            Set publication information metadata NAME to VALUE.
+                                   Valid metadata names are: [creator date description
+                                   language publisher relation rights subject title]
+  -F, --no-fixup                   Do not attempt to make document meet XHTML 1.0 Strict.
+                                   Default is to try and fix things that are broken. 
+  -e, --encoding NAME              Set source document encoding. Default is to autodetect.
+
+Post-processing options:
+  -s, --stylesheet [PATH]          Use custom stylesheet at PATH. Empty PATH will remove
+                                   all links to CSS and <style> blocks from the source.
+  -a, --add PATH                   Add external file to the generated ePub.
+  -N, --new-fragment XHTML         Prepare document fragment for -A and -P operations.
+  -A, --after SELECTOR             Insert fragment after element with XPath selector.
+  -P, --before SELECTOR            Insert fragment before element with XPath selector.
+  -X, --remove SELECTOR            Remove source element using XPath selector.
+                                   Use -X- to ignore stored profile.
+  -R, --rx /PATTERN/REPLACEMENT/   Edit source HTML using regular expressions.
+                                   Use -R- to ignore stored profile.
+  -B, --browser                    After processing, open resulting HTML in default browser.
 
 == DEPENDENCIES:
 
