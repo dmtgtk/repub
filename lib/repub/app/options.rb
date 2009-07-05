@@ -131,10 +131,10 @@ module Repub
           opts.separator ""
           opts.separator "  Post-processing options:"
           
-          opts.on("-s", "--stylesheet [PATH]", String,
-            "Use custom stylesheet at PATH. Empty PATH will remove",
-            "all links to CSS and <style> blocks from the source."
-          ) { |value| options[:css] = File.expand_path(value) if value }
+          opts.on("-s", "--stylesheet PATH", String,
+            "Use custom stylesheet at PATH. Use -s- to remove",
+            "all links to stylesheets and <style> blocks from the source."
+          ) { |value| options[:css] = value == '-' ? value : File.expand_path(value) }
 
           opts.on("-a", "--add PATH", String,
             "Add external file to the generated ePub."

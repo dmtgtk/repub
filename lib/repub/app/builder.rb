@@ -16,7 +16,7 @@ module Repub
         include Epub, Logger
         
         attr_reader :output_path
-        attr_reader :asset_path
+        attr_reader :document_path
         
         def initialize(options)
           @options = options
@@ -78,15 +78,15 @@ module Repub
         
         def copy_and_process_assets
           # Copy html
-          @parser.cache.assets[:documents].each do |asset|
-            log.debug "-- Processing document #{asset}"
+          @parser.cache.assets[:documents].each do |doc|
+            log.debug "-- Processing document #{doc}"
             # Copy asset from cache
-            FileUtils.cp(File.join(@parser.cache.path, asset), '.')
+            FileUtils.cp(File.join(@parser.cache.path, doc), '.')
             # Do post-processing
-            postprocess_file(asset)
-            postprocess_doc(asset)
-            @content.add_item(asset)
-            @asset_path = File.expand_path(asset)
+            postprocess_file(doc)
+            postprocess_doc(doc)
+            @content.add_item(doc)
+            @document_path = File.expand_path(doc)
           end
 
           # Copy css
@@ -97,7 +97,7 @@ module Repub
               FileUtils.cp(File.join(@parser.cache.path, css), '.')
               @content.add_item(css)
             end
-          else
+          elsif @options[:css] != '-'
             # Copy custom css
             log.debug "-- Using custom stylesheet #{@options[:css]}"
             FileUtils.cp(@options[:css], '.')
@@ -116,26 +116,24 @@ module Repub
             log.debug "-- Copying external file #{file}"
             FileUtils.cp(file, '.')
             @content.add_item(file)
-          end
+          end if @options[:add]
         end
         
         def postprocess_file(asset)
           source = IO.read(asset)
 
           # Do rx substitutions
-          if @options[:rx] && !@options[:rx].empty?
-            @options[:rx].each do |rx|
-              rx.strip!
-              delimiter = rx[0, 1]
-              rx = rx.gsub(/\\#{delimiter}/, "\n")
-              ra = rx.split(/#{delimiter}/).reject {|e| e.empty? }.each {|e| e.gsub!(/\n/, "#{delimiter}")}
-              raise ParserException, "Invalid regular expression" if ra.empty? || ra[0].nil? || ra.size > 2
-              pattern = ra[0]
-              replacement = ra[1] || ''
-              log.info "Replacing pattern /#{pattern.gsub(/#{delimiter}/, "\\#{delimiter}")}/ with \"#{replacement}\""
-              source.gsub!(Regexp.new(pattern), replacement)
-            end
-          end
+          @options[:rx].each do |rx|
+            rx.strip!
+            delimiter = rx[0, 1]
+            rx = rx.gsub(/\\#{delimiter}/, "\n")
+            ra = rx.split(/#{delimiter}/).reject {|e| e.empty? }.each {|e| e.gsub!(/\n/, "#{delimiter}")}
+            raise ParserException, "Invalid regular expression" if ra.empty? || ra[0].nil? || ra.size > 2
+            pattern = ra[0]
+            replacement = ra[1] || ''
+            log.info "Replacing pattern /#{pattern.gsub(/#{delimiter}/, "\\#{delimiter}")}/ with \"#{replacement}\""
+            source.gsub!(Regexp.new(pattern), replacement)
+          end if @options[:rx]
 
           # Add doctype if missing
           if source !~ /\s*<!DOCTYPE/
@@ -157,60 +155,51 @@ module Repub
             el['content'] = 'text/html; charset=utf-8'
           end
 
-          # Add or substitute custom CSS
+          # Process styles
           if @options[:css] && !@options[:css].empty?
-            # First remove inline style elements, if any
-            doc.xpath('//head/style').remove
-            # Now look for links
-            link_elements = doc.xpath('//head/link[@rel="stylesheet"]')
-            if link_elements.empty?
-              # No stylesheet refs in file, add a new one
+            # Remove all stylesheet links
+            doc.xpath('//head/link[@rel="stylesheet"]').remove
+            if @options[:css] == '-'
+              # Also remove all inline styles
+              doc.xpath('//head/style').remove
+              log.debug "-- Removing all stylesheet links and style elements"
+            else
+              # Add custom stylesheet link
               link = Nokogiri::XML::Node.new('link', doc)
               link['rel'] = 'stylesheet'
               link['type'] = 'text/css'
               link['href'] = File.basename(@options[:css])
+              # Add as the last child so it has precedence over (possible) inline styles before
               doc.at('//head').add_child(link)
-              log.debug "-- Adding CSS ref with #{link['href']}"
-            else
-              # Found stylesheet links, replace hrefs
-              link_elements.each do |link|
-                link['href'] = File.basename(@options[:css])
-                log.debug "-- Replacing CSS refs with #{link['href']}"
-              end
+              log.debug "-- Replacing CSS refs with #{link['href']}"
             end
           end
 
           # Insert elements after/before selector
-          if @options[:after]
-            @options[:after].each do |e|
-              selector = e.keys.first
-              fragment = e[selector]
-              element = doc.xpath(selector).first
-              if element
-                element.add_next_sibling(fragment)
-                log.info "Inserting fragment \"#{fragment}\" after \"#{selector}\""
-              end
+          @options[:after].each do |e|
+            selector = e.keys.first
+            fragment = e[selector]
+            element = doc.xpath(selector).first
+            if element
+              element.add_next_sibling(fragment)
+              log.info "Inserting fragment \"#{fragment.to_html}\" after \"#{selector}\""
             end
-          end
-          if @options[:before]
-            @options[:before].each do |e|
-              selector = e.keys.first
-              fragment = e[selector]
-              element = doc.xpath(selector).first
-              if element
-                element.add_previous_sibling(fragment)
-                log.info "Inserting fragment \"#{fragment}\" before \"#{selector}\""
-              end
+          end if @options[:after]
+          @options[:before].each do |e|
+            selector = e.keys.first
+            fragment = e[selector]
+            element = doc.xpath(selector).first
+            if element
+              element.add_previous_sibling(fragment)
+              log.info "Inserting fragment \"#{fragment}\" before \"#{selector}\""
             end
-          end
+          end if @options[:before]
 
           # Remove elements
-          if @options[:remove] && !@options[:remove].empty?
-            @options[:remove].each do |selector|
-              log.info "Removing elements \"#{selector}\""
-              doc.search(selector).remove
-            end
-          end
+          @options[:remove].each do |selector|
+            log.info "Removing elements \"#{selector}\""
+            doc.search(selector).remove
+          end if @options[:remove]
 
           # Save processed doc
           File.open(asset, 'w') do |f|

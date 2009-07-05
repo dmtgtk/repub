@@ -113,8 +113,8 @@ Parser options:
   -e, --encoding NAME              Set source document encoding. Default is to autodetect.
 
 Post-processing options:
-  -s, --stylesheet [PATH]          Use custom stylesheet at PATH. Empty PATH will remove
-                                   all links to CSS and <style> blocks from the source.
+  -s, --stylesheet PATH            Use custom stylesheet at PATH. Use -s- to remove
+                                   all links to stylesheets and <style> blocks from the source.
   -a, --add PATH                   Add external file to the generated ePub.
   -N, --new-fragment XHTML         Prepare document fragment for -A and -P operations.
   -A, --after SELECTOR             Insert fragment after element with XPath selector.

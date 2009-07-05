@@ -31,10 +31,10 @@ module Repub
       
       log.level = options[:verbosity]
       log.info "Making ePub from #{options[:url]}"
-      res = build(parse(fetch))
-      log.info "Saved #{res.output_path}"
+      builder = build(parse(fetch))
+      log.info "Saved #{builder.output_path}"
       
-      Launchy::Browser.run(res.asset_path) if options[:browser]
+      Launchy::Browser.run(builder.document_path) if options[:browser]
     
     rescue RuntimeError => ex
       log.fatal "** ERROR: #{ex.to_s}"
