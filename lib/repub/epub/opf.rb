@@ -4,13 +4,16 @@ require 'builder'
 module Repub
   module Epub
   
-  class Content
+  # Open Packaging Format (OPF) 2.0 wrapper
+  # (see http://www.idpf.org/2007/opf/OPF_2.0_final_spec.html)
+  #
+  class OPF
     
     def initialize(uid)
       @metadata = Metadata.new('Untitled', 'en', uid, Date.today.to_s)
       @manifest_items = []
       @spine_items = []
-      @manifest_items << ContentItem.new('ncx', 'toc.ncx')
+      @manifest_items << PackageItem.new('ncx', 'toc.ncx')
     end
     
     class Metadata < Struct.new(
@@ -30,36 +33,10 @@ module Repub
     attr_reader :metadata
 
     def add_item(href, id = nil)
-      item = ContentItem.new(id || "item_#{@manifest_items.size}", href)
+      item = PackageItem.new(id || "item_#{@manifest_items.size}", href)
       @manifest_items << item
       @spine_items << item if item.document?
     end
-    
-    #def add_stylesheet(href, id = nil)
-    #  @manifest_items << ContentItem.new(id || "css_#{@css_counter += 1}", href, 'text/css')
-    #end
-    #
-    #def add_image(href, id = nil)
-    #  image_type = case(href.strip.downcase)
-    #    when /.*\.(jpeg|jpg)$/
-    #      'image/jpeg'
-    #    when /.*\.png$/
-    #      'image/png'
-    #    when /.*\.gif$/
-    #      'image/gif'
-    #    when /.*\.svg$/
-    #      'image/svg+xml'
-    #    else
-    #      raise 'Unsupported image type'
-    #  end
-    #  @manifest_items << ContentItem.new(id || "img_#{@img_counter += 1}", href, image_type)
-    #end
-    #
-    #def add_document(href, id = nil)
-    #  manifest_item = ContentItem.new(id || "item_#{@html_counter += 1}", href, 'application/xhtml+xml')
-    #  @manifest_items << manifest_item
-    #  @spine_items << manifest_item
-    #end
     
     def to_xml
       out = ''
@@ -75,7 +52,7 @@ module Repub
       out
     end
     
-    def save(path = 'content.opf')
+    def save(path = 'package.opf')
       File.open(path, 'w') do |f|
         f << to_xml
       end
@@ -108,7 +85,7 @@ module Repub
           builder.dc :relation do
             builder << @metadata.relation
           end if @metadata.relation
-          builder.dc :creator do
+          builder.dc :creator do                  # TODO: roles
             builder << @metadata.creator
           end if @metadata.creator
           builder.dc :publisher do
@@ -123,7 +100,7 @@ module Repub
       end
     end
     
-    class ContentItem < Struct.new(
+    class PackageItem < Struct.new(
         :id,
         :href,
         :media_type

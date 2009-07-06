@@ -3,8 +3,13 @@ require 'builder'
 
 module Repub
   module Epub
-  
+
+  # Wrapper for META-INF/container.xml
+  #  
   class Container
+    
+    # TODO: add method
+    
     def to_xml
       out = ''
       builder = Builder::XmlMarkup.new(:target => out)
