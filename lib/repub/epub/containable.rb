@@ -6,12 +6,11 @@ module Repub
     # Mixin for stuff that can be added to the ePub package
     #
     module Containable
-      attr_accessor :id
       attr_accessor :file_path
       attr_accessor :media_type
       
       def document?
-        ['application/xhtml+xml', 'application/x-dtbook+xml'].include? @media_type
+        ['application/xhtml+xml', 'application/x-dtbook+xml'].include? self.media_type
       end
     end
     
@@ -21,9 +20,8 @@ module Repub
     class Item
       include Containable
       
-      def initialize(file_path, id = nil, media_type = nil)
+      def initialize(file_path, media_type = nil)
         @file_path = file_path.strip
-        @id = id
         @media_type = media_type || case @file_path.downcase
           when /.*\.html?$/
             'application/xhtml+xml'

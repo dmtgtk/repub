@@ -9,7 +9,6 @@ module Repub
     
     def initialize(uid, file_path = 'toc.ncx')
       @file_path = file_path
-      @id = 'ncx'
       @media_type = 'application/x-dtbncx+xml'
       @head = Head.new(uid)
       @doc_title = DocTitle.new('Untitled')
@@ -28,7 +27,7 @@ module Repub
     
     def to_xml
       out = ''
-      builder = Builder::XmlMarkup.new(:target => out, :indent => 4)
+      builder = Builder::XmlMarkup.new(:target => out)
       builder.instruct!
       builder.declare! :DOCTYPE, :ncx, :PUBLIC, "-//NISO//DTD ncx 2005-1//EN", "http://www.daisy.org/z3986/2005/ncx-2005-1.dtd"
       builder.ncx :xmlns => "http://www.daisy.org/z3986/2005/ncx/", :version => "2005-1" do
@@ -118,9 +117,9 @@ module Repub
         play_order = 0
         l = lambda do |points, depth|
           @depth = depth if depth > @depth
-          points.each do |point|
-            point.play_order = (play_order += 1)
-            l.call(point.points, depth + 1) unless point.points.empty?
+          points.each do |pt|
+            pt.play_order = (play_order += 1)
+            l.call(pt.points, depth + 1) unless pt.points.empty?
           end
         end
         l.call(@points, @depth = 1)

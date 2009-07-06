@@ -52,6 +52,7 @@ module Repub
       File.open('mimetype', 'w') do |f|
         f << 'application/epub+zip'
       end
+      # mimetype has to be first in the archive
       %x(zip -X9 \"#{output_path}\" mimetype)
       %x(zip -Xr9D \"#{output_path}\" * -xi mimetype)
     end

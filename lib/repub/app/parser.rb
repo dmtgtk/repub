@@ -12,7 +12,7 @@ module Repub
         Parser.new(options).parse(cache)
       end
   
-      # Default selectors
+      # Default selectors, some reasonable values
       #
       Selectors = {
         :title        => '//h1',
@@ -34,9 +34,12 @@ module Repub
           @fixup = options[:fixup]
         end
         
+        # Parse downloaded asset cache
+        #
         def parse(cache)
           raise ParserException, "No HTML document found" if
             cache.assets[:documents].empty?
+          # TODO: limited to a single document only
           raise ParserException, "More than one HTML document found, this is not supported (yet)" if
             cache.assets[:documents].size > 1
           
@@ -47,14 +50,14 @@ module Repub
           
           @uid = @cache.name
           parse_title
-          #parse_title_html
           parse_toc
-          
           self
         end
         
         private
-        
+
+        # Parse document title
+        #
         def parse_title
           log.debug "-- Looking for title with #{@selectors[:title]}"
           el = @doc.at(@selectors[:title])
@@ -71,7 +74,10 @@ module Repub
             log.warn "** Could not find document title, using '#{@title}'"
           end
         end
-        
+
+        # Parsed TOC item container
+        # Inherit from NavPoint to avoid conversions later in Builder
+        #
         class TocItem < Repub::Epub::NCX::NavPoint
           
           def initialize(title, uri_with_fragment_id, subitems, document)
@@ -81,7 +87,9 @@ module Repub
           end
         
         end
-        
+
+        # Look for TOC and recursively parse it
+        #
         def parse_toc
           @toc = []
           depth = 0
@@ -102,7 +110,7 @@ module Repub
                 # Item has subsection, use anchor text for title
                 title = a.inner_text
               else
-                # Leaf item, glue inner_text from all children
+                # Leaf item, it is safe to glue inner_text from all children
                 title = item.children.map{|c| c.inner_text }.join(' ')
               end
               title = title.gsub(/[\r\n]/, '').gsub(/\s+/, ' ').strip

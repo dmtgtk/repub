@@ -35,7 +35,7 @@ class TestToc < Test::Unit::TestCase
     assert_equal('2', doc.at('//xmlns:navMap/xmlns:navPoint[position()=2]')['playOrder'])
     assert_equal('3', doc.at('//xmlns:navMap/xmlns:navPoint[position()=2]/xmlns:navPoint[position()=1]')['playOrder'])
     assert_equal('5', doc.at('//xmlns:navMap/xmlns:navPoint[position()=3]')['playOrder'])
-    assert_equal('2', doc.at('//xmlns:navMap/xmlns:navPoint[position()=2]')['id'])
+    assert_equal('navPoint-2', doc.at('//xmlns:navMap/xmlns:navPoint[position()=2]')['id'])
     assert_equal('Chapter 1', doc.at('//xmlns:navMap/xmlns:navPoint[position()=2]/xmlns:navLabel/xmlns:text').inner_text)
     assert_equal('chapter-1.html', doc.at('//xmlns:navMap/xmlns:navPoint[position()=2]/xmlns:content')['src'])
     assert_equal(7, doc.xpath('//xmlns:navMap//xmlns:navPoint').size)

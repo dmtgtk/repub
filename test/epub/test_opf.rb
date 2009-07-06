@@ -28,7 +28,7 @@ class TestContent < Test::Unit::TestCase
     manifest = doc.at('manifest')
     assert_not_nil(manifest)
     assert_equal(1, manifest.children.size)
-    assert_equal('0', manifest.at('item[@href="toc.ncx"]')['id'])
+    assert_equal('ncx', manifest.at('item[@href="toc.ncx"]')['id'])
     assert_not_nil(doc.at('spine'))
     assert_equal(0, doc.xpath('spine/item').size)
   end
@@ -41,6 +41,7 @@ class TestContent < Test::Unit::TestCase
     opf << 'intro.html'
     opf << ' image.png'
     opf << 'picture.jpeg     '
+    opf << Repub::Epub::NCX.new('some-ncx')
     opf << 'chapter-1.html'
     opf << 'glossary.html'
     s = opf.to_xml
@@ -52,10 +53,14 @@ class TestContent < Test::Unit::TestCase
     assert_equal(2, manifest.xpath('item[@media-type="text/css"]').size)
     assert_equal(2, manifest.search('item[@media-type="image/jpeg"]').size)
     assert_equal(1, manifest.search('item[@media-type="image/png"]').size)
+    # NCX is first and always has id = 'ncx'
+    assert_equal('ncx', manifest.at('./item[position()=1]')['id'])
     
     spine = doc.at('spine')
+    # attribute toc has and id of NCX manifest item
+    assert_equal('ncx', spine['toc'])
     assert_equal(3, spine.search('itemref').size)
-    assert_equal('3', spine.at('./itemref[position()=1]')['idref'])
-    assert_equal('7', spine.at('./itemref[position()=3]')['idref'])
+    assert_equal('item-4', spine.at('./itemref[position()=1]')['idref'])
+    assert_equal('item-8', spine.at('./itemref[position()=3]')['idref'])
   end
 end

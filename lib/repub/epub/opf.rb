@@ -75,7 +75,9 @@ module Repub
     attr_reader :items
     
     def <<(item)
-      if item.kind_of? Containable
+      if item.kind_of? NCX
+        @ncx = item
+      elsif item.kind_of? Containable
         @items << item
       elsif item.is_a? String
         @items << Item.new(item)
@@ -86,7 +88,7 @@ module Repub
 
     def to_xml
       out = ''
-      builder = Builder::XmlMarkup.new(:target => out, :indent => 4)
+      builder = Builder::XmlMarkup.new(:target => out)
       builder.instruct!
       builder.package :xmlns => "http://www.idpf.org/2007/opf",
           'unique-identifier' => "dcidid",
@@ -112,6 +114,8 @@ module Repub
     
     def manifest_to_xml(builder)
       builder.manifest do
+        # NCX has fixed id
+        builder.item :id => 'ncx', :href => @ncx.file_path, 'media-type' => @ncx.media_type if @ncx
         @items.each_with_index do |item, index|
           builder.item :id => item_id(index), :href => item.file_path, 'media-type' => item.media_type
         end
@@ -119,7 +123,8 @@ module Repub
     end
     
     def spine_to_xml(builder)
-      builder.spine do
+      # toc attribute points to the NCX item in manifest
+      builder.spine :toc => 'ncx' do
         @items.each_with_index do |item, index|
           builder.itemref :idref => item_id(index) if item.document?
         end
