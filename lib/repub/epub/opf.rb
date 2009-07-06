@@ -86,7 +86,7 @@ module Repub
 
     def to_xml
       out = ''
-      builder = Builder::XmlMarkup.new(:target => out)
+      builder = Builder::XmlMarkup.new(:target => out, :indent => 4)
       builder.instruct!
       builder.package :xmlns => "http://www.idpf.org/2007/opf",
           'unique-identifier' => "dcidid",
@@ -106,10 +106,14 @@ module Repub
     
     private
 
+    def item_id(index)
+      "item-#{index + 1}"
+    end
+    
     def manifest_to_xml(builder)
       builder.manifest do
         @items.each_with_index do |item, index|
-          builder.item :id => index.to_s, :href => item.file_path, 'media-type' => item.media_type
+          builder.item :id => item_id(index), :href => item.file_path, 'media-type' => item.media_type
         end
       end
     end
@@ -117,7 +121,7 @@ module Repub
     def spine_to_xml(builder)
       builder.spine do
         @items.each_with_index do |item, index|
-          builder.itemref :idref => index.to_s if item.document?
+          builder.itemref :idref => item_id(index) if item.document?
         end
       end
     end

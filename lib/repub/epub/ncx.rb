@@ -9,6 +9,7 @@ module Repub
     
     def initialize(uid, file_path = 'toc.ncx')
       @file_path = file_path
+      @id = 'ncx'
       @media_type = 'application/x-dtbncx+xml'
       @head = Head.new(uid)
       @doc_title = DocTitle.new('Untitled')
@@ -27,7 +28,7 @@ module Repub
     
     def to_xml
       out = ''
-      builder = Builder::XmlMarkup.new(:target => out)
+      builder = Builder::XmlMarkup.new(:target => out, :indent => 4)
       builder.instruct!
       builder.declare! :DOCTYPE, :ncx, :PUBLIC, "-//NISO//DTD ncx 2005-1//EN", "http://www.daisy.org/z3986/2005/ncx-2005-1.dtd"
       builder.ncx :xmlns => "http://www.daisy.org/z3986/2005/ncx/", :version => "2005-1" do
@@ -78,18 +79,17 @@ module Repub
         :src
       )
       
-      def initialize(title, src)
-        super
-        #@@last_play_order = 0
+      def initialize(title, src, points = nil)
+        super(title, src)
         @play_order = 0
-        @points = []
+        @points = points || []
       end
       
       attr_accessor :play_order
-      attr_reader :points
+      attr_accessor :points
       
       def to_xml(builder)
-        builder.navPoint :id => @play_order.to_s, :playOrder => @play_order do
+        builder.navPoint :id => point_id(@play_order), :playOrder => @play_order do
           builder.navLabel do
             builder.text self.title
           end
@@ -97,9 +97,16 @@ module Repub
           @points.each { |point| point.to_xml(builder) }
         end
       end
+      
+      private
+      
+      def point_id(play_order)
+        "navPoint-#{play_order}"
+      end
     end
 
     class NavMap < NavPoint
+      
       def initialize
         super(nil, nil)
         @depth = 1
@@ -112,12 +119,11 @@ module Repub
         l = lambda do |points, depth|
           @depth = depth if depth > @depth
           points.each do |point|
-            point.play_order = play_order += 1
+            point.play_order = (play_order += 1)
             l.call(point.points, depth + 1) unless point.points.empty?
           end
         end
-        @depth = 1
-        l.call(@points, @depth)
+        l.call(@points, @depth = 1)
       end
       
       def to_xml(builder)

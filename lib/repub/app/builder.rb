@@ -50,7 +50,7 @@ module Repub
           @ncx = Epub::NCX.new(@parser.uid)
           @opf << @ncx
           @ncx.title = @opf.metadata.title
-          @ncx.nav_map << @parser.toc
+          @ncx.nav_map.points = @parser.toc
 
           # Setup output filename and path
           @output_path = File.expand_path(@options[:output_path].if_blank('.'))
@@ -58,7 +58,7 @@ module Repub
             @output_path = File.join(@output_path, @opf.metadata.title.gsub(/\s/, '_'))
           end
           @output_path = @output_path +  '.epub'
-          log.debug "-- Setting output path to #{@output_path}"
+          log.debug "-- Output path is #{@output_path}"
           
           # Build EPUB
           tmpdir = Dir.mktmpdir(App::name)

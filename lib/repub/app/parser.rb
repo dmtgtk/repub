@@ -27,7 +27,6 @@ module Repub
         attr_reader :cache
         attr_reader :uid
         attr_reader :title
-        attr_reader :title_html
         attr_reader :toc
         
         def initialize(options)
@@ -42,21 +41,19 @@ module Repub
             cache.assets[:documents].size > 1
           
           @cache = cache
-          @asset = @cache.assets[:documents][0]
-          log.debug "-- Parsing #{@asset}"
-          @doc = Nokogiri::HTML.parse(IO.read(File.join(@cache.path, @asset)), nil, 'UTF-8')
+          @document = @cache.assets[:documents][0]
+          log.debug "-- Parsing #{@document}"
+          @doc = Nokogiri::HTML.parse(IO.read(File.join(@cache.path, @document)), nil, 'UTF-8')
           
           @uid = @cache.name
           parse_title
-          parse_title_html
+          #parse_title_html
           parse_toc
           
           self
         end
         
         private
-        
-        UNTITLED = 'Untitled'
         
         def parse_title
           log.debug "-- Looking for title with #{@selectors[:title]}"
@@ -70,98 +67,67 @@ module Repub
             @title = title_text.gsub(/[\r\n]/, '').gsub(/\s+/, ' ').strip
             log.info "Found title \"#{@title}\""
           else
-            @title = UNTITLED
+            @title = 'Untitled'
             log.warn "** Could not find document title, using '#{@title}'"
           end
         end
         
-        def parse_title_html
-          log.debug "-- Looking for html title with #{@selectors[:title]}"
-          el = @doc.at(@selectors[:title])
-          @title_html = el ? el.inner_html.gsub(/[\r\n]/, '') : UNTITLED
-        end
+        class TocItem < Repub::Epub::NCX::NavPoint
+          
+          def initialize(title, uri_with_fragment_id, subitems, document)
+            uri, fragment_id = uri_with_fragment_id.split(/#/)
+            uri = document if uri.empty?
+            super(title, "#{uri}##{fragment_id}", subitems)
+          end
         
-        # Helper container for TOC items
-        #
-        class TocItem < Struct.new(
-            :title,
-            :uri,
-            :fragment_id
-          )
-          
-          def initialize(title, uri_with_fragment_id, subitems, asset)
-            self.title = title
-            self.uri, self.fragment_id = uri_with_fragment_id.split(/#/)
-            self.uri = asset if self.uri.empty?
-            @subitems = subitems || []
-          end
-    
-          attr_reader :subitems
-          
-          def src
-            "#{uri}##{fragment_id}"
-          end
         end
         
         def parse_toc
+          @toc = []
+          depth = 0
+          
+          l = lambda do |section|
+            toc_items = []
+            depth += 1
+            section.xpath(@selectors[:toc_item]).each do |item|
+              # Get item's anchor and href
+              a = item.name == 'a' ? item : item.at('a')
+              next if !a
+              href = a['href']
+              next if !href
+              
+              # Is this a leaf item or node? Title parsing depends on that.
+              subsection = item.xpath(@selectors[:toc_section]).first
+              if subsection
+                # Item has subsection, use anchor text for title
+                title = a.inner_text
+              else
+                # Leaf item, glue inner_text from all children
+                title = item.children.map{|c| c.inner_text }.join(' ')
+              end
+              title = title.gsub(/[\r\n]/, '').gsub(/\s+/, ' ').strip
+              log.debug "-- #{"  " * depth}#{title}"
+              
+              # Parse subsection
+              subitems = l.call(subsection) if subsection
+              
+              toc_items << TocItem.new(title, href, subitems, @document)
+            end
+            depth -= 1
+            toc_items
+          end
+
           log.debug "-- Looking for TOC with #{@selectors[:toc]}"
-          el = @doc.xpath(@selectors[:toc]).first
-          if el
-            @toc = parse_toc_section(el)
+          toc_element = @doc.xpath(@selectors[:toc]).first
+          
+          if toc_element
+            log.debug "-- Found TOC, parsing items with #{@selectors[:toc_item]} and sections with #{@selectors[:toc_section]}"
+            @toc = l.call(toc_element)
             log.info "Found TOC with #{@toc.size} top-level items"
           else
-            @toc = []
             log.warn "** Could not find document table of contents"
           end
         end
-        
-        def parse_toc_section(section)
-          toc = []
-          log.debug "-- Looking for TOC items with #{@selectors[:toc_item]}"
-          section.xpath(@selectors[:toc_item]).each do |item|
-            # Get item's anchor and href
-            a = item.name == 'a' ? item : item.at('a')
-            next if !a
-            href = a['href']
-            next if !href
-            # Is this a leaf item or node ?
-            subsection = item.xpath(@selectors[:toc_section]).first
-            if subsection
-              # Item has subsection, use anchor text for title
-              title = a.inner_text
-            else
-              # Leaf item, glue inner_text from all children
-              title = item.children.map{|c| c.inner_text }.join(' ')
-            end
-            title = title.gsub(/[\r\n]/, '').gsub(/\s+/, ' ').strip
-            log.debug "-- Found item: #{title}"
-            # Parse sub-section
-            if subsection
-              log.debug "-- Found section with #{@selectors[:toc_section]}"
-              log.debug "-- >"
-              subitems = parse_toc_section(subsection)
-              log.debug '-- .'
-            end
-            toc << TocItem.new(title, href, subitems, @asset)
-          end
-          toc
-        end
-        
-        # Monkey-patch NavMap to allow it to be set from Parser's TOC items collection
-        #
-        class << Repub::Epub::NCX::NavMap
-          def <<(toc)
-            l = lambda do |toc_items|
-              toc_items.each do |toc_item|
-                point = Repub::Epub::NCX::NavPoint.new(toc_item.title, toc_item.src)
-                points << point
-                l.call(toc_item.subitems) unless toc_item.subitems.empty?
-              end
-            end
-            l.call(toc)
-          end
-        end
-        
       end
 
     end
