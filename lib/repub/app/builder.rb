@@ -13,7 +13,7 @@ module Repub
       end
   
       class Builder
-        include Epub, Logger
+        include Logger
         
         attr_reader :output_path
         attr_reader :document_path
@@ -25,31 +25,37 @@ module Repub
         def build(parser)
           @parser = parser
 
-          # Initialize content.opf
-          @content = Content.new(@parser.uid)
+          # Initialize Container
+          @ocf = Epub::OCF.new
+          
+          # Initialize Package
+          @opf = Epub::OPF.new(@parser.uid)
+          @ocf << @opf
           # Default title is the parsed one
-          @content.metadata.title = @parser.title
+          @opf.metadata.title = @parser.title
           # Override metadata values specified in options
           if @options[:metadata]
-            @content.metadata.members.each do |m|
+            @opf.metadata.members.each do |m|
               m = m.to_sym
-              next if m == :identifier   # do not allow to override uid
+              # Do not allow to override uid
+              next if m == :identifier
               if @options[:metadata][m]
-                @content.metadata[m] = @options[:metadata][m]
-                log.debug "-- Setting metadata #{m} to \"#{@content.metadata[m]}\""
+                @opf.metadata[m] = @options[:metadata][m]
+                log.debug "-- Setting metadata #{m} to \"#{@opf.metadata[m]}\""
               end
             end
           end
           
-          # Initialize toc.ncx
-          @toc = Toc.new(@parser.uid)
-          # TOC title is the same as in content.opf
-          @toc.title = @content.metadata.title
+          # Initialize TOC
+          @ncx = Epub::NCX.new(@parser.uid)
+          @opf << @ncx
+          @ncx.title = @opf.metadata.title
+          @ncx.nav_map << @parser.toc
 
           # Setup output filename and path
           @output_path = File.expand_path(@options[:output_path].if_blank('.'))
           if File.exist?(@output_path) && File.directory?(@output_path)
-            @output_path = File.join(@output_path, @content.metadata.title.gsub(/\s/, '_'))
+            @output_path = File.join(@output_path, @opf.metadata.title.gsub(/\s/, '_'))
           end
           @output_path = @output_path +  '.epub'
           log.debug "-- Setting output path to #{@output_path}"
@@ -59,11 +65,10 @@ module Repub
           begin
             FileUtils.chdir(tmpdir) do
               copy_and_process_assets
-              write_meta_inf
-              write_mime_type
-              write_content
-              write_toc
-              write_epub
+              @ncx.save
+              @opf.save
+              @ocf.save
+              @ocf.zip(@output_path)
             end
           ensure
             # Keep tmp folder if we're going open processed doc in browser
@@ -74,8 +79,6 @@ module Repub
         
         private
         
-        MetaInf = 'META-INF'
-        
         def copy_and_process_assets
           # Copy html
           @parser.cache.assets[:documents].each do |doc|
@@ -85,7 +88,7 @@ module Repub
             # Do post-processing
             postprocess_file(doc)
             postprocess_doc(doc)
-            @content.add_item(doc)
+            @opf << doc
             @document_path = File.expand_path(doc)
           end
 
@@ -95,27 +98,27 @@ module Repub
             @parser.cache.assets[:stylesheets].each do |css|
               log.debug "-- Copying stylesheet #{css}"
               FileUtils.cp(File.join(@parser.cache.path, css), '.')
-              @content.add_item(css)
+              @opf << css
             end
           elsif @options[:css] != '-'
             # Copy custom css
             log.debug "-- Using custom stylesheet #{@options[:css]}"
             FileUtils.cp(@options[:css], '.')
-            @content.add_item(File.basename(@options[:css]))
+            @opf << File.basename(@options[:css])
           end
 
           # Copy images
           @parser.cache.assets[:images].each do |image|
             log.debug "-- Copying image #{image}"
             FileUtils.cp(File.join(@parser.cache.path, image), '.')
-            @content.add_item(image)
+            @opf << image
           end
 
           # Copy external custom files (-a option)
           @options[:add].each do |file|
             log.debug "-- Copying external file #{file}"
             FileUtils.cp(file, '.')
-            @content.add_item(file)
+            @opf << file
           end if @options[:add]
         end
         
@@ -212,40 +215,6 @@ module Repub
               doc.write_html_to(f, :encoding => 'UTF-8')
             end
           end
-        end
-        
-        def write_meta_inf
-          FileUtils.mkdir_p(MetaInf)
-          FileUtils.chdir(MetaInf) do
-            Epub::Container.new.save
-          end
-        end
-        
-        def write_mime_type
-          File.open('mimetype', 'w') do |f|
-            f << 'application/epub+zip'
-          end
-        end
-    
-        def write_content
-          @content.save
-        end
-        
-        def write_toc
-          add_nav_points(@toc.nav_map, @parser.toc)
-          @toc.save
-        end
-        
-        def add_nav_points(nav_collection, toc)
-          toc.each do |t|
-            nav_point = nav_collection.add_nav_point(t.title, t.src)
-            add_nav_points(nav_point, t.subitems) if t.subitems
-          end
-        end
-        
-        def write_epub
-          %x(zip -X9 \"#{@output_path}\" mimetype)
-          %x(zip -Xr9D \"#{@output_path}\" * -xi mimetype)
         end
       end
 

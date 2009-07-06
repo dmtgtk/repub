@@ -1,5 +1,6 @@
 require 'rubygems'
 require 'nokogiri'
+require 'repub/epub'
 
 module Repub
   class App
@@ -145,6 +146,22 @@ module Repub
           end
           toc
         end
+        
+        # Monkey-patch NavMap to allow it to be set from Parser's TOC items collection
+        #
+        class << Repub::Epub::NCX::NavMap
+          def <<(toc)
+            l = lambda do |toc_items|
+              toc_items.each do |toc_item|
+                point = Repub::Epub::NCX::NavPoint.new(toc_item.title, toc_item.src)
+                points << point
+                l.call(toc_item.subitems) unless toc_item.subitems.empty?
+              end
+            end
+            l.call(toc)
+          end
+        end
+        
       end
 
     end

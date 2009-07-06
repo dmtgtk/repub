@@ -1,12 +1,15 @@
-  require 'rubygems'
+require 'rubygems'
 require 'builder'
 
 module Repub
   module Epub
   
-  class Toc
+  class NCX
+    include Containable
     
-    def initialize(uid)
+    def initialize(uid, file_path = 'toc.ncx')
+      @file_path = file_path
+      @media_type = 'application/x-dtbncx+xml'
       @head = Head.new(uid)
       @doc_title = DocTitle.new('Untitled')
       @nav_map = NavMap.new
@@ -19,7 +22,7 @@ module Repub
     def title=(text)
       @doc_title = DocTitle.new(text)
     end
-    
+
     attr_reader :nav_map
     
     def to_xml
@@ -37,8 +40,8 @@ module Repub
       out
     end
     
-    def save(path = 'toc.ncx')
-      File.open(path, 'w') do |f|
+    def save
+      File.open(@file_path, 'w') do |f|
         f << to_xml
       end
     end
@@ -70,66 +73,56 @@ module Repub
       end
     end
     
-    class NavMap
-      class NavPoint < Struct.new(
-          :title,
-          :src
-        )
-        
-        def initialize(title, src)
-          super
-          @@last_play_order = 0
-          @play_order = 0
-          @child_points = []
-        end
-        
-        def add_nav_point(title, src)
-          nav_point = NavPoint.new(title, src)
-          @child_points << nav_point
-          nav_point
-        end
-        
-        def to_xml(builder)
-          builder.navPoint :id => "navPoint-#{@play_order}", :playOrder => @play_order do
-            builder.navLabel do
-              builder.text self.title
-            end
-            builder.content :src => self.src
-            @child_points.each { |child_point| child_point.to_xml(builder) }
-          end
-        end
-        
-        def calc_depth_and_play_order(nav_map, depth)
-          nav_map.depth = depth
-          @play_order = @@last_play_order += 1
-          @child_points.each { |child_point| child_point.calc_depth_and_play_order(nav_map, depth + 1) }
-        end
+    class NavPoint < Struct.new(
+        :title,
+        :src
+      )
+      
+      def initialize(title, src)
+        super
+        #@@last_play_order = 0
+        @play_order = 0
+        @points = []
       end
       
+      attr_accessor :play_order
+      attr_reader :points
+      
+      def to_xml(builder)
+        builder.navPoint :id => @play_order.to_s, :playOrder => @play_order do
+          builder.navLabel do
+            builder.text self.title
+          end
+          builder.content :src => self.src
+          @points.each { |point| point.to_xml(builder) }
+        end
+      end
+    end
+
+    class NavMap < NavPoint
       def initialize
-        @nav_points = []
+        super(nil, nil)
         @depth = 1
       end
       
-      def add_nav_point(title, src)
-        nav_point = NavPoint.new(title, src)
-        @nav_points << nav_point
-        nav_point
-      end
-    
       attr_reader :depth
       
-      def depth=(value)
-        @depth = value if value > @depth
-      end
-      
       def calc_depth_and_play_order
-        @nav_points.each { |nav_point| nav_point.calc_depth_and_play_order(self, 1) }
+        play_order = 0
+        l = lambda do |points, depth|
+          @depth = depth if depth > @depth
+          points.each do |point|
+            point.play_order = play_order += 1
+            l.call(point.points, depth + 1) unless point.points.empty?
+          end
+        end
+        @depth = 1
+        l.call(@points, @depth)
       end
       
       def to_xml(builder)
         builder.navMap do
-          @nav_points.each { |nav_point| nav_point.to_xml(builder) }
+          @points.each { |point| point.to_xml(builder) }
         end
       end
     end

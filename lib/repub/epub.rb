@@ -1,3 +1,4 @@
-require 'repub/epub/container'
-require 'repub/epub/content'
-require 'repub/epub/toc'
+require 'repub/epub/containable'
+require 'repub/epub/ocf'
+require 'repub/epub/opf'
+require 'repub/epub/ncx'
