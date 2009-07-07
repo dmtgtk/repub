@@ -138,12 +138,21 @@ module Repub
             source.gsub!(Regexp.new(pattern), replacement)
           end if @options[:rx]
 
-          # Add doctype if missing
-          if source !~ /\s*<!DOCTYPE/
-            log.debug "-- Adding missing doctype"
-            source = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n" + source
+          # Remove xml preamble if any
+          preamble_rx = /^\s*<\?xml\s+[^>]+>\s*/mi
+          if source =~ preamble_rx
+            log.debug "-- Removing xml preamble"
+            source.sub!(preamble_rx, '')
           end
-
+          
+          # Replace doctype
+          doctype_rx = /^\s*<!DOCTYPE\s+[^>]+>\s*/mi
+          if source =~ doctype_rx
+            source.sub!(doctype_rx, '')
+          end
+          log.debug "-- Replacing doctype"
+          source = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n" + source
+          
           # Save processed file
           File.open(asset, 'w') do |f|
             f.write(source)
@@ -152,7 +161,7 @@ module Repub
         
         def postprocess_doc(asset)
           doc = Nokogiri::HTML.parse(IO.read(asset), nil, 'UTF-8')
-
+          
           # Set Content-Type charset to UTF-8
           doc.xpath('//head/meta[@http-equiv="Content-Type"]').each do |el|
             el['content'] = 'text/html; charset=utf-8'
@@ -203,6 +212,13 @@ module Repub
             log.info "Removing elements \"#{selector}\""
             doc.search(selector).remove
           end if @options[:remove]
+          
+          # XXX
+          # doc.xpath('//body/a').each do |a|
+          #   wrapper = Nokogiri::XML::Node.new('p', doc)
+          #   a.add_next_sibling(wrapper)
+          #   wrapper << a
+          # end
 
           # Save processed doc
           File.open(asset, 'w') do |f|

@@ -71,22 +71,54 @@ module Repub
         
         private
         
+        # HACK HACK HACK
+        # ADE seems to have problems following TOC in content files with .htm extension
+        # Renaming these files to .html and fix references inside them
+        #
         def fix_filenames(cache)
-          # TODO: fix non-alphanum characters in doc filenames
+          # # TODO: fix non-alphanum characters in doc filenames
+          # documents = []
+          # cache.assets[:documents].each do |file_name|
+          #   if file_name =~ /\.htm$/i
+          #     proper_name = file_name.gsub($&, '.html')
+          #     FileUtils.mv(file_name, proper_name)
+          #     s = IO.read(proper_name)
+          #     raise FetcherException, "empty document" unless s
+          #     s.gsub!(file_name, proper_name)
+          #     File.open(proper_name, 'w') { |f| f.write(s) }
+          #     documents << proper_name
+          #   else
+          #     documents << file_name
+          #   end
+          # end
+          # cache.assets[:documents] = documents
+          
+          # XXX
+          cache.assets[:documents].each do |file_name|
+            s = IO.read(file_name)
+            m = s.scan(/\s+(?:id|name)\s*?=\s*?['"](\d+[^'"]*)['"]/im)
+            unless m.empty?
+              m.each do |i|
+                s.gsub!(i[0], "a#{i[0]}")
+              end
+              File.open(file_name, 'w') { |f| f.write(s) }
+            end
+          end
+          
         end
         
         def fix_encoding(cache, encoding = nil)
-          cache.assets[:documents].each do |doc|
+          cache.assets[:documents].each do |file_name|
             unless encoding
-              log.info "Detecting encoding for #{doc}"
-              s = IO.read(doc)
+              log.info "Detecting encoding for #{file_name}"
+              s = IO.read(file_name)
               raise FetcherException, "empty document" unless s
               encoding = UniversalDetector.chardet(s)['encoding']
             end
             if encoding.downcase != 'utf-8'
               log.info "Source encoding appears to be #{encoding}, converting to UTF-8"
-              s = Iconv.conv('utf-8', encoding, IO.read(doc))
-              File.open(doc, 'w') { |f| f.write(s) }
+              s = Iconv.conv('utf-8', encoding, s)
+              File.open(file_name, 'w') { |f| f.write(s) }
             end
           end
         end

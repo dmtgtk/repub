@@ -27,7 +27,7 @@ broken too bad) be readable but will be lacking any metadata or TOC.
 
 Few examples:
 
-* Project Gutenberg's THE ADVENTURES OF SHERLOCK HOLMES (with proper table of contents)
+* Project Gutenberg's The Adventures Of Sherlock Holmes (with proper table of contents)
 
     repub -x 'title:div[@class='book']//h1' \
       -x 'toc://table' \
@@ -69,6 +69,14 @@ For example, if you later decide to regenerate Git Manual ePub without TOC at th
 
 Few more examples:
 
+* Open Packaging Format (OPF) 2.0 (one of the ePub standards, in ePub)
+
+    repub -x 'title://p[@class="Title"]' \
+      -x 'toc://div[@class="TOC"]' \
+      -x 'toc_item:.//p' \
+      -x 'toc_section:.//div[@class="TOCSection"]' \
+      http://www.idpf.org/2007/opf/OPF_2.0_final_spec.html
+
 * GNU Wget Manual
 
     repub -m 'creator:gnu.org' \
@@ -76,7 +84,7 @@ Few more examples:
       -X '//div[@class="contents"]' \
       http://www.gnu.org/software/wget/manual/wget.html
 
-* Project Gutenberg's ALICE'S ADVENTURES IN WONDERLAND
+* And finally, the "Hello World" of e-books, Alice's Adventures In Wonderland
 
     repub -x 'title:body/h1' -x 'toc://table' -x 'toc_item://tr' -X '//pre' -X '//hr' -X '//body/h4' \
       http://www.gutenberg.org/files/11/11-h/11-h.htm
@@ -150,7 +158,7 @@ Bugs: probably. If you find any, please report them to dg at invisiblellama dot 
 
 == INSTALL:
 
-    gem install repub
+    sudo gem install repub
 
 == LICENSE:
 
