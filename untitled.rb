@@ -3,31 +3,29 @@
 module Filter
   
   def self.included(base)
-    
     (class << base; self; end).instance_eval do
-
       attr_reader :filters
-
-      define_method(:filter) do |name, options, &block|
-        @filters ||= {}
-        role = options[:role]
-        raise 'Filter should have a role' unless role
-        @filters[role] ||= []
-        @filters[role] << {:name => name, :proc => Proc.new(&block) }
+      define_method(:filter) do |name, &block|
+        @filters ||= []
+        @filters << {:name => name, :proc => Proc.new(&block) }
       end
     end
   end
   
-  def apply_filters (role, input)
-    role_filters.inject(input) { |s, filter| p s; filter[:proc].call(s) }
+  def apply_filters(input)
+    self.class.filters.inject(input) { |input, filter| filter[:proc].call(input) }
   end
 end
 
 class FilterTest
   include Filter
   
-  filter :filter_1, :role => :file do |s|
+  filter :filter_1 do |s|
     s.upcase
+  end
+  
+  filter :filter_2 do |s|
+    "++ #{s} --"
   end
 end
 
