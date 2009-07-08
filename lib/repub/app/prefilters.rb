@@ -1,6 +1,8 @@
+require 'repub/app/filter'
+
 module Repub
   class App
-    class PreFilters
+    class PreFilter
       include Filter
       
       # Detect and convert source encoding
@@ -33,7 +35,6 @@ module Repub
         content
       end
 
-      end
     end
   end
 end
