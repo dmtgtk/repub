@@ -63,14 +63,22 @@ module Repub
               raise FetcherException, "Fetch failed."
             end
             unless cache.cached?
-              fix_filenames(cache)
-              fix_encoding(cache, @options[:encoding])
+              preprocess
+              #fix_filenames(cache)
+              #fix_encoding(cache, @options[:encoding])
             end
           end
         end
         
         private
         
+        def preprocess
+          cache.assets[:documents].each do |file|
+            log.info "Preprocessing #{file}"
+            s = PreFilters.apply_filters(IO.read(file), @options)
+            File.open(file, 'w') { |f| f.write(s) }
+          end
+        end
         # HACK HACK HACK
         # ADE seems to have problems following TOC in content files with .htm extension
         # Renaming these files to .html and fix references inside them

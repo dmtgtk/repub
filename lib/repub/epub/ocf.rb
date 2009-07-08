@@ -17,7 +17,7 @@ module Repub
     attr_reader :items
     
     def <<(item)
-      if item.kind_of? Containable
+      if item.kind_of? ContainerItem
         @items << item
       elsif item.is_a? String
         @items << Item.new(item)

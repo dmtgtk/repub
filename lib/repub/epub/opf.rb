@@ -8,7 +8,7 @@ module Repub
   # (see http://www.idpf.org/2007/opf/OPF_2.0_final_spec.html)
   #
   class OPF
-    include Containable
+    include ContainerItem
     
     def initialize(uid, file_path = 'package.opf')
       @file_path = file_path
@@ -77,7 +77,7 @@ module Repub
     def <<(item)
       if item.kind_of? NCX
         @ncx = item
-      elsif item.kind_of? Containable
+      elsif item.kind_of? ContainerItem
         @items << item
       elsif item.is_a? String
         @items << Item.new(item)

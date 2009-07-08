@@ -5,7 +5,7 @@ module Repub
 
     # Mixin for stuff that can be added to the ePub package
     #
-    module Containable
+    module ContainerItem
       attr_accessor :file_path
       attr_accessor :media_type
       
@@ -18,7 +18,7 @@ module Repub
     # e.g. HTML files, CSSs etc.
     #
     class Item
-      include Containable
+      include ContainerItem
       
       def initialize(file_path, media_type = nil)
         @file_path = file_path.strip

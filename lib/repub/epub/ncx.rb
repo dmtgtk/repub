@@ -5,7 +5,7 @@ module Repub
   module Epub
   
   class NCX
-    include Containable
+    include ContainerItem
     
     def initialize(uid, file_path = 'toc.ncx')
       @file_path = file_path
