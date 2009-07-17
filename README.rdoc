@@ -29,7 +29,7 @@ Few examples:
 
 * Project Gutenberg's The Adventures Of Sherlock Holmes (with proper table of contents)
 
-    repub -x 'title:div[@class='book']//h1' \
+    repub -x 'title:div[@class="book"]//h1' \
       -x 'toc://table' \
       -x 'toc_item://tr' \
       http://www.gutenberg.org/dirs/etext99/advsh12h.htm
@@ -38,7 +38,7 @@ This tells Repub to look for title in the first found H1 in the DIV of class "bo
 located in the first TABLE and TOC item can be found inside TR.
 The above will produce readable ePub which can be further enhanced by removing some "noise" content: 
 
-    repub -x 'title:div[@class='book']//h1' \
+    repub -x 'title:div[@class="book"]//h1' \
       -x 'toc://table' \
       -x 'toc_item://tr' \
       -X '//pre' -X '//hr' -X '//body/h1' -X '//body/h2' \
@@ -150,7 +150,7 @@ Currently, only "everything-on-one-page" HTML sources are supported. Repub will 
 
 Encoding auto-detection is slow.
 
-Chardet 0.9.0 is broken under Ruby 1.9.
+Chardet 0.9.0 is broken under Ruby 1.9 so if you want to use Ruby 1.9 you have to set encoding manually with -e.
 
 Bugs: probably. If you find any, please report them to dg at invisiblellama dot net.
 

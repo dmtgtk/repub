@@ -21,15 +21,25 @@ module Repub
         s
       end
 
-      # Find and fix all elements with id or name attributes beginning with digit
-      # ADE wont follow links referencing such ids
+      # Convert line endings to LF
+      #
+      filter :fix_line_endings do |s|
+        s.gsub(/\r\n/, "\n")
+      end
+
+      # Fix all elements with broken id attribute
+      # In XHTML id must match [A-Za-z][A-Za-z0-9:_.-]*
+      # TODO: currently only testing for non-alpha first char...
       #
       filter :fix_ids do |s|
-        match = s.scan(/\s+(?:id|name)\s*?=\s*?['"](\d+[^'"]*)['"]/im)
+        match = s.scan(/\s+((?:id|name)\s*?=\s*?['"])(\d+[^'"]*)['"]/im)
         unless match.empty?
           log.debug "-- Fixing broken element IDs"
           match.each do |m|
-            s.gsub!(m[0], "x#{m[0]}")
+            # fix id so it starts with alpha char
+            s.gsub!(m.join(''), m.join('x'))
+            # update fragment references
+            s.gsub!(/##{m[1]}(['"])/, "#x#{m[1]}\\1")
           end
         end
         s
