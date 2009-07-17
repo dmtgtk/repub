@@ -116,8 +116,6 @@ Parser options:
   -m, --meta NAME:VALUE            Set publication information metadata NAME to VALUE.
                                    Valid metadata names are: [creator date description
                                    language publisher relation rights subject title]
-  -F, --no-fixup                   Do not attempt to make document meet XHTML 1.0 Strict.
-                                   Default is to try and fix things that are broken. 
   -e, --encoding NAME              Set source document encoding. Default is to autodetect.
 
 Post-processing options:

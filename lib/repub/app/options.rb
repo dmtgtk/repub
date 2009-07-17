@@ -17,7 +17,6 @@ module Repub
           :browser        => false,
           :css            => nil,
           :encoding       => nil,
-          :fixup          => true,
           :helper         => 'wget',
           :metadata       => {},
           :output_path    => Dir.getwd,
@@ -118,11 +117,6 @@ module Repub
             end
             options[:metadata][name.to_sym] = value
           end
-
-          opts.on("-F", "--no-fixup",
-            "Do not attempt to make document meet XHTML 1.0 Strict.",
-            "Default is to try and fix things that are broken. "
-          ) { |value| options[:fixup] = false }
 
           opts.on("-e", "--encoding NAME", String,
             "Set source document encoding. Default is to autodetect."

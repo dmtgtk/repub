@@ -5,7 +5,7 @@ module Repub
   class App
     module Profile
 
-      PROFILE_KEYS = %w[css encoding fixup helper metadata remove rx selectors].map {|k| k.to_sym}
+      PROFILE_KEYS = %w[css encoding helper metadata remove rx selectors].map {|k| k.to_sym}
       
       def load_profile(name = nil)
         name ||= 'default'

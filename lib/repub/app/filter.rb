@@ -12,6 +12,7 @@ module Repub
           attr_reader :options
         end
         base.extend(ClassMethods)
+        base.extend(Logger)
       end
 
       def options

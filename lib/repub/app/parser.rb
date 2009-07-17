@@ -31,7 +31,6 @@ module Repub
         
         def initialize(options)
           @selectors = options[:selectors] || Selectors
-          @fixup = options[:fixup]
         end
         
         # Parse downloaded asset cache
