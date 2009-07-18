@@ -118,7 +118,7 @@ module Repub
           @options[:add].each do |file|
             log.debug "-- Copying external file #{file}"
             FileUtils.cp(file, '.')
-            @opf << file
+            @opf << File.basename(file)
           end if @options[:add]
         end
 

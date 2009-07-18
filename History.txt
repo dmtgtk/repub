@@ -1,9 +1,15 @@
+== 0.3.5 / 2009-07-18
+
+* Bug fixes
+
+    * Fixed incorrect path for added external files in OPF (Christian Steinert)
+
 == 0.3.4 / 2009-07-17
 
 * Bug fixes
 
     * Pre- and post processing filters moved to separate modules.
-    * Non-conformant element IDs are now fixed automaticly
+    * Non-conformant element IDs are now fixed automatically
     * Regardless of the source settings, doctype now is always set to XHTML 1.0 Transitional
     * -F (disable fixups) option removed, fixups are always on
     * Documentation updates

@@ -39,7 +39,9 @@ module Repub
       
       Launchy::Browser.run(builder.document_path) if options[:browser]
     
-    rescue RuntimeError => ex
+    # rescue RuntimeError => ex
+    #   log.fatal "** ERROR: #{ex.to_s}"
+    rescue Exception => ex
       log.fatal "** ERROR: #{ex.to_s}"
     end
   
