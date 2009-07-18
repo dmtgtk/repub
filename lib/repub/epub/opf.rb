@@ -15,6 +15,7 @@ module Repub
       @media_type = 'application/oebps-package+xml'
       @metadata = Metadata.new('Untitled', 'en', uid, Date.today.to_s)
       @items = []
+      @ncx = nil
     end
     
     class Metadata < Struct.new(

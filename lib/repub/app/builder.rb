@@ -9,10 +9,10 @@ module Repub
       class BuilderException < RuntimeError; end
       
       def build(parser)
-        Builder.new(options).build(parser)
+        BuilderSupport.new(options).build(parser)
       end
   
-      class Builder
+      class BuilderSupport
         include Logger
         
         attr_reader :output_path

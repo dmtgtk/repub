@@ -9,7 +9,7 @@ module Repub
       class ParserException < RuntimeError; end
       
       def parse(cache)
-        Parser.new(options).parse(cache)
+        ParserSupport.new(options).parse(cache)
       end
   
       # Default selectors, some reasonable values
@@ -21,7 +21,7 @@ module Repub
         :toc_section  => './ul'
       }
       
-      class Parser
+      class ParserSupport
         include Logger
         
         attr_reader :cache
