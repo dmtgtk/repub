@@ -36,7 +36,7 @@ module Repub
         unless match.empty?
           log.debug "-- Fixing broken element IDs"
           match.each do |m|
-            # fix id so it starts with alpha char
+            # fix id attribute
             s.gsub!(m.join(''), m.join('x'))
             # update fragment references
             s.gsub!(/##{m[1]}(['"])/, "#x#{m[1]}\\1")
